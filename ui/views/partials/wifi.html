@@ -1,0 +1,37 @@
+<div class="Box">
+    <div class="Box-header">
+        <div class="d-inline">
+            <div class="d-inline-block v-align-middle mr-2">
+                <span class="material-icons md-36">wifi</span>
+            </div>
+            <div class="d-inline-block v-align-middle">
+                <h3>Wireless</h3>
+            </div>
+        </div>
+    </div>
+    <div class="Box-row">
+        <form id="wifi-form" action="/api/wifi" method="post">
+            <div class="form-group">
+                <div class="form-group-header">
+                    <label for="ssid">SSID</label>
+                </div>
+                <div class="form-group-body">
+                    <input class="form-control input-block" type="text" placeholder="SSID" id="ssid" name="ssid" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-group-header">
+                    <label for="password">Password</label>
+                </div>
+                <div class="form-group-body">
+                    <input class="form-control input-block" type="password" placeholder="Password" id="password" name="password" />
+                </div>
+            </div>
+            
+            <div class="form-actions mt-4">
+                <input class="btn btn-primary btn-block" type="submit" value="Connect" />
+            </div>
+        </form>
+    </div>
+</div>

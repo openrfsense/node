@@ -1,0 +1,5 @@
+# VScode settings
+.vscode/
+
+# Build directory
+dist/
