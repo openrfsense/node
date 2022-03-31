@@ -1,23 +1,6 @@
 before:
   hooks:
     - go mod tidy
-builds:
-  - main: ./cmd/node
-    binary: orfs-node
-    env:
-      - CGO_ENABLED=0
-    targets:
-      - linux_amd64
-      - windows_amd64
-      - linux_arm64
-      - linux_arm_7
-archives:
-  - replacements:
-      darwin: MacOS
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
 checksum:
   name_template: 'checksums.txt'
 snapshot:
@@ -28,6 +11,23 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+builds:
+  - main: ./cmd/node
+    binary: orfs-node
+    env:
+      - CGO_ENABLED=0
+    targets:
+      - linux_amd64
+      # - windows_amd64
+      - linux_arm64
+      - linux_arm_7
+archives:
+  - replacements:
+      darwin: MacOS
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
 nfpms:
   - bindir: /usr/bin
     package_name: openrfsense-node

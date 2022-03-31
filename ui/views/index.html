@@ -11,7 +11,12 @@
 </head>
 <body>
     <div class="container-md mt-8">
-        {{ template "views/partials/wifi" . }}
+        <div>
+            {{ template "views/partials/wifi" . }}
+        </div>
+        <div class="mt-4">
+            {{ template "views/partials/ethernet" . }}
+        </div>
     </div>
 </body>
 </html>

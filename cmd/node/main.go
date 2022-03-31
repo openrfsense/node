@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -18,6 +19,41 @@ import (
 	"github.com/openrfsense/node/ui"
 )
 
+type Node struct {
+	Port int
+}
+
+type Backend struct {
+	Port  int
+	Users map[string]string
+}
+
+type MQTT struct {
+	Protocol string
+	Host     string
+	Port     int
+	Secret   string
+}
+
+type BackendConfig struct {
+	Node
+	Backend
+	MQTT
+}
+
+var DefaultConfig = BackendConfig{
+	Node: Node{
+		Port: 8080,
+	},
+	Backend: Backend{
+		Port: 8080,
+	},
+	MQTT: MQTT{
+		Protocol: "tcp",
+		Port:     8080,
+	},
+}
+
 func main() {
 	configPath := pflag.StringP("config", "c", "", "path to yaml config file")
 	pflag.Parse()
@@ -26,7 +62,7 @@ func main() {
 	log.Println("Starting node " + id)
 
 	log.Println("Loading config")
-	err := config.Load(*configPath)
+	err := config.Load(*configPath, DefaultConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,7 +87,8 @@ func main() {
 
 	log.Println("Starting internal API")
 	router := fiber.New(fiber.Config{
-		Views: ui.NewEngine(),
+		PassLocalsToViews: true,
+		Views:             ui.NewEngine(),
 	})
 
 	api.Use(router, "/api")
@@ -69,8 +106,8 @@ func main() {
 		shutdown <- struct{}{}
 	}()
 
-	// addr := fmt.Sprintf(":%d", config.Get[int]("api.port"))
-	if err := router.Listen(":9090"); err != nil {
+	addr := fmt.Sprintf(":%d", config.GetWeakInt("node.port"))
+	if err := router.Listen(addr); err != nil {
 		log.Fatal(err)
 	}
 

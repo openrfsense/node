@@ -1,6 +1,6 @@
 <div class="Box">
-    <div class="Box-header">
-        <div class="d-inline">
+    <div class="Box-header d-flex flex-items-center">
+        <div class="d-inline overflow-hidden flex-auto">
             <div class="d-inline-block v-align-middle mr-2">
                 <span class="material-icons md-36">wifi</span>
             </div>
@@ -8,9 +8,36 @@
                 <h3>Wireless</h3>
             </div>
         </div>
+        {{ if .wifi.connected }}
+        <span class="State State--open mr-2">Online</span>
+        {{ else }}
+        <span class="State State--closed mr-2">Offline</span>
+        {{ end }}
     </div>
+    {{ if .wifi.connected }}
     <div class="Box-row">
-        <form id="wifi-form" action="/api/wifi" method="post">
+        <div>
+            <p>
+                <span class="h4">SSID</span>
+                <span class="text-mono">{{ .wifi.ssid }}</span>
+            </p>
+        </div>
+        <div>
+            <p>
+                <span class="h4">IP</span>
+                <span class="text-mono">{{ .wifi.ip }}</span>
+            </p>
+        </div>
+        <div>
+            <p>
+                <span class="h4">Interface</span>
+                <span class="text-mono">{{ .wifi.interface }}</span>
+            </p>
+        </div>
+    </div>
+    {{ end }}
+    <div class="Box-row">
+        <form id="wifi-form" action="/api/network/wifi" method="post">
             <div class="form-group">
                 <div class="form-group-header">
                     <label for="ssid">SSID</label>
