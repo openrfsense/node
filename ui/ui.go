@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/template/html"
 	"github.com/mdlayher/ethtool"
@@ -29,11 +30,15 @@ func NewEngine() *html.Engine {
 
 // Configure a router for the UI. Initializes routes and view models.
 func Use(router *fiber.App) {
-	router.Use("/static", filesystem.New(filesystem.Config{
-		Root:       http.FS(staticFs),
-		PathPrefix: "static",
-		Browse:     true,
-	}))
+	router.Use(
+		"/static",
+		filesystem.New(filesystem.Config{
+			Root:       http.FS(staticFs),
+			PathPrefix: "static",
+			Browse:     true,
+		}),
+		compress.New(),
+	)
 
 	router.Get("/", renderIndex)
 }
@@ -95,13 +100,19 @@ func renderIndex(c *fiber.Ctx) error {
 		return err
 	}
 
-	infos, err := ethtool.LinkInfos()
+	// FIXME: ethtool is slow at detecting the link state, use a watcher + context?
+	states, err := ethtool.LinkStates()
 	if err != nil {
+		log.Println("failed to get eth link infos")
 		return err
 	}
 
-	for _, i := range infos {
-		iface, err := net.InterfaceByIndex(i.Interface.Index)
+	for _, state := range states {
+		if !state.Link {
+			continue
+		}
+
+		iface, err := net.InterfaceByIndex(state.Interface.Index)
 		if err != nil {
 			log.Print(err)
 			break
@@ -119,7 +130,7 @@ func renderIndex(c *fiber.Ctx) error {
 				if ipnet.IP.To4() != nil {
 					ethMap["connected"] = true
 					ethMap["ip"] = ipnet.IP.String()
-					ethMap["interface"] = i.Interface.Name
+					ethMap["interface"] = state.Interface.Name
 					break
 				}
 			}

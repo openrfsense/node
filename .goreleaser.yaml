@@ -41,5 +41,5 @@ nfpms:
     version_metadata: git
     contents:
       - src: config.yml
-        dst: /etc/openrfsense/config.yml
+        dst: /etc/openrfsense/config.example.yml
         type: "config|noreplace"

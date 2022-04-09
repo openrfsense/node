@@ -21,10 +21,9 @@ func Use(router *fiber.App, prefix string) {
 	router.Route(prefix, func(router fiber.Router) {
 		router.Post("/network/wifi", func(c *fiber.Ctx) error {
 			// FIXME: find distro-indipendent way of registering a new network.
-			// - Only one network at all times?
-			// - wpa_supplicant.conf probably -> will need to modify as root, kinda bad
 			log.Printf("SSID: " + c.FormValue("ssid"))
 			log.Printf("Password: " + c.FormValue("password"))
+
 			return c.SendString("")
 		})
 	})

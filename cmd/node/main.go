@@ -9,7 +9,6 @@ import (
 
 	emitter "github.com/emitter-io/go/v2"
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/spf13/pflag"
 
 	"github.com/openrfsense/common/config"
@@ -58,8 +57,7 @@ func main() {
 	configPath := pflag.StringP("config", "c", "", "path to yaml config file")
 	pflag.Parse()
 
-	id := uuid.New().String()
-	log.Println("Starting node " + id)
+	log.Println("Starting node " + mqtt.ID())
 
 	log.Println("Loading config")
 	err := config.Load(*configPath, DefaultConfig)
@@ -76,9 +74,9 @@ func main() {
 		log.Fatalf("could not connect to MQTT: %v", err)
 	}
 
-	log.Printf("Node id is: %s", mqtt.Client.ID())
+	log.Printf("Remote node id is: %s", mqtt.Client.ID())
 
-	// TODO: move elsewhere
+	// FIXME: move elsewhere
 	mqtt.Subscribe("sensors/all/", nil)
 	mqtt.Subscribe("sensors/"+mqtt.Client.ID()+"/cmd/", func(_ *emitter.Client, m emitter.Message) {
 		log.Printf("received remote command: %s", string(m.Payload()))
