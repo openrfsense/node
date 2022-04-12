@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	emitter "github.com/emitter-io/go/v2"
 	"github.com/gofiber/fiber/v2"
@@ -13,34 +13,34 @@ import (
 
 	"github.com/openrfsense/common/config"
 	"github.com/openrfsense/common/keystore"
+	"github.com/openrfsense/common/logging"
 	"github.com/openrfsense/node/api"
 	"github.com/openrfsense/node/mqtt"
 	"github.com/openrfsense/node/ui"
 )
 
 type Node struct {
-	Port int
+	Port int `koanf:"port"`
 }
 
 type Backend struct {
-	Port  int
-	Users map[string]string
+	Port  int               `koanf:"port"`
+	Users map[string]string `koanf:"users"`
 }
 
 type MQTT struct {
-	Protocol string
-	Host     string
-	Port     int
-	Secret   string
+	Protocol string `koanf:"protocol"`
+	Host     string `koanf:"host"`
+	Port     int    `koanf:"port"`
 }
 
-type BackendConfig struct {
-	Node
-	Backend
-	MQTT
+type NodeConfig struct {
+	Node    `koanf:"node"`
+	Backend `koanf:"backend"`
+	MQTT    `koanf:"mqtt"`
 }
 
-var DefaultConfig = BackendConfig{
+var DefaultConfig = NodeConfig{
 	Node: Node{
 		Port: 8080,
 	},
@@ -53,44 +53,53 @@ var DefaultConfig = BackendConfig{
 	},
 }
 
+var (
+	version = ""
+	commit  = ""
+	date    = ""
+
+	log = logging.New(
+		logging.WithPrefix("main"),
+		logging.WithLevel(logging.DebugLevel),
+		logging.WithFlags(logging.FlagsDevelopment),
+	)
+)
+
 func main() {
 	configPath := pflag.StringP("config", "c", "", "path to yaml config file")
 	pflag.Parse()
 
-	log.Println("Starting node " + mqtt.ID())
+	log.Infof("Starting node %s", mqtt.ID())
 
-	log.Println("Loading config")
+	log.Info("Loading config")
 	err := config.Load(*configPath, DefaultConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Println("Starting keystore")
+	log.Info("Starting keystore")
 	keystore.Init(mqtt.NewBackendRetriever(), mqtt.DefaultTTL)
 
-	log.Println("Connecting to MQTT")
-	err = mqtt.InitClient()
-	if err != nil {
-		log.Fatalf("could not connect to MQTT: %v", err)
-	}
-
-	log.Printf("Remote node id is: %s", mqtt.Client.ID())
+	log.Info("Connecting to MQTT")
+	mqtt.Init()
 
 	// FIXME: move elsewhere
 	mqtt.Subscribe("sensors/all/", nil)
-	mqtt.Subscribe("sensors/"+mqtt.Client.ID()+"/cmd/", func(_ *emitter.Client, m emitter.Message) {
-		log.Printf("received remote command: %s", string(m.Payload()))
+	mqtt.Subscribe("sensors/"+mqtt.ID()+"/cmd/", func(_ *emitter.Client, m emitter.Message) {
+		log.Debugf("received remote command", "cmd", string(m.Payload()))
 	})
-	mqtt.Publish("sensors/"+mqtt.Client.ID()+"/output/", "hello")
+	mqtt.Publish("sensors/"+mqtt.ID()+"/output/", "hello")
 
-	log.Println("Starting internal API")
+	log.Info("Starting internal API")
 	router := fiber.New(fiber.Config{
-		PassLocalsToViews: true,
-		Views:             ui.NewEngine(),
+		AppName:               "openrfsense-node",
+		DisableStartupMessage: true,
+		PassLocalsToViews:     true,
+		Views:                 ui.NewEngine(),
 	})
 
-	api.Use(router, "/api")
-	ui.Use(router)
+	api.Init(router, "/api")
+	ui.Init(router)
 
 	// Graceful shutdown
 	c := make(chan os.Signal, 1)
@@ -100,7 +109,8 @@ func main() {
 	go func() {
 		<-c
 		router.Shutdown()
-		log.Println("Shutting down")
+		mqtt.Disconnect(time.Second)
+		log.Info("Shutting down")
 		shutdown <- struct{}{}
 	}()
 

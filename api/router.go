@@ -1,16 +1,21 @@
 package api
 
 import (
-	"log"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+
+	"github.com/openrfsense/common/logging"
 )
 
-// Configure a router for the interal API. Initializes REST endpoints under the given prefix.
-func Use(router *fiber.App, prefix string) {
+var log = logging.New(
+	logging.WithPrefix("api"),
+	logging.WithFlags(logging.FlagsDevelopment),
+)
+
+// Configure a router and use logger for the interal API. Initializes REST endpoints under the given prefix.
+func Init(router *fiber.App, prefix string) {
 	// TODO: is auth needed?
 	router.Use(
 		logger.New(),
@@ -21,8 +26,8 @@ func Use(router *fiber.App, prefix string) {
 	router.Route(prefix, func(router fiber.Router) {
 		router.Post("/network/wifi", func(c *fiber.Ctx) error {
 			// FIXME: find distro-indipendent way of registering a new network.
-			log.Printf("SSID: " + c.FormValue("ssid"))
-			log.Printf("Password: " + c.FormValue("password"))
+			log.Debug("router", "SSID: "+c.FormValue("ssid"))
+			log.Debug("router", "Password: "+c.FormValue("password"))
 
 			return c.SendString("")
 		})

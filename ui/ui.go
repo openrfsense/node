@@ -2,7 +2,6 @@ package ui
 
 import (
 	"embed"
-	"log"
 	"net"
 	"net/http"
 
@@ -12,6 +11,13 @@ import (
 	"github.com/gofiber/template/html"
 	"github.com/mdlayher/ethtool"
 	"github.com/mdlayher/wifi"
+
+	"github.com/openrfsense/common/logging"
+)
+
+var log = logging.New(
+	logging.WithPrefix("ui"),
+	logging.WithFlags(logging.FlagsDevelopment),
 )
 
 //go:embed views/*
@@ -28,8 +34,8 @@ func NewEngine() *html.Engine {
 	return engine
 }
 
-// Configure a router for the UI. Initializes routes and view models.
-func Use(router *fiber.App) {
+// Configure a router and use a logger for the UI. Initializes routes and view models.
+func Init(router *fiber.App) {
 	router.Use(
 		"/static",
 		filesystem.New(filesystem.Config{
@@ -43,7 +49,7 @@ func Use(router *fiber.App) {
 	router.Get("/", renderIndex)
 }
 
-// Renders the main webpage for the UI
+// Renders the main webpage for the UI.
 func renderIndex(c *fiber.Ctx) error {
 	wifiMap := fiber.Map{
 		"connected": false,
@@ -70,13 +76,13 @@ func renderIndex(c *fiber.Ctx) error {
 		bss, _ := wc.BSS(iface)
 		netIface, err := net.InterfaceByIndex(iface.Index)
 		if err != nil {
-			log.Print(err)
+			log.Error(err)
 			break
 		}
 
 		addrs, err := netIface.Addrs()
 		if err != nil {
-			log.Print(err)
+			log.Error(err)
 			break
 		}
 
@@ -103,7 +109,7 @@ func renderIndex(c *fiber.Ctx) error {
 	// FIXME: ethtool is slow at detecting the link state, use a watcher + context?
 	states, err := ethtool.LinkStates()
 	if err != nil {
-		log.Println("failed to get eth link infos")
+		log.Error("failed to get eth link infos")
 		return err
 	}
 
@@ -114,13 +120,13 @@ func renderIndex(c *fiber.Ctx) error {
 
 		iface, err := net.InterfaceByIndex(state.Interface.Index)
 		if err != nil {
-			log.Print(err)
+			log.Error(err)
 			break
 		}
 
 		addrs, err := iface.Addrs()
 		if err != nil {
-			log.Print(err)
+			log.Error(err)
 			break
 		}
 

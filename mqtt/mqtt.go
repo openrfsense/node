@@ -5,18 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
-	"math/rand"
-	"net"
 	"net/http"
 	"net/url"
 	"time"
-	"unsafe"
 
 	emitter "github.com/emitter-io/go/v2"
 
 	"github.com/openrfsense/common/config"
 	"github.com/openrfsense/common/keystore"
+	"github.com/openrfsense/common/logging"
 	"github.com/openrfsense/common/types"
 )
 
@@ -24,11 +21,15 @@ var (
 	Client     *emitter.Client
 	DefaultTTL = 600 * time.Second
 
-	id string
+	log = logging.New(
+		logging.WithPrefix("mqtt"),
+		logging.WithLevel(logging.DebugLevel),
+		logging.WithFlags(logging.FlagsDevelopment),
+	)
 )
 
 // TODO: make a better init procedure and/or move to openrfsense-common
-func InitClient() error {
+func Init() {
 	brokerHost := fmt.Sprintf("%s:%d", config.Must[string]("mqtt.host"), config.Must[int]("mqtt.port"))
 	brokerUrl := url.URL{
 		Scheme: config.Must[string]("mqtt.protocol"),
@@ -36,7 +37,7 @@ func InitClient() error {
 	}
 
 	Client = emitter.NewClient(
-		emitter.WithClientID(ID()),
+		emitter.WithUsername(ID()),
 		emitter.WithBrokers(brokerUrl.String()),
 		emitter.WithAutoReconnect(true),
 		emitter.WithConnectTimeout(10*time.Second),
@@ -44,21 +45,25 @@ func InitClient() error {
 		emitter.WithMaxReconnectInterval(2*time.Minute),
 	)
 
+	// FIXME: remove this
 	Client.OnMessage(func(_ *emitter.Client, msg emitter.Message) {
-		fmt.Printf("[emitter] -> [B] received: '%s' topic: '%s'\n", msg.Payload(), msg.Topic())
+		log.Debugf("mqtt", "[emitter] -> [B] received: '%s' topic: '%s'\n", msg.Payload(), msg.Topic())
 	})
 
-	// FIXME: start trying to reconnect if first connection fails
 	err := Client.Connect()
 	if err != nil {
-		return err
+		ticker := time.NewTicker(30 * time.Second)
+		for !Client.IsConnected() {
+			logging.Warn("mqtt", "Could not connect to MQTT broker, trying again")
+			<-ticker.C
+			Client.Connect()
+		}
+		ticker.Stop()
 	}
 
 	Client.OnConnect(func(_ *emitter.Client) {
-		log.Println("Connected to MQTT broker")
+		logging.Info("mqtt", "Connected to MQTT broker")
 	})
-
-	return nil
 }
 
 // Custom keystore.Retriever which fetches channel keys from the OpenRFSense backend
@@ -107,60 +112,6 @@ func NewBackendRetriever() keystore.Retriever {
 
 		return string(body), nil
 	}
-}
-
-// Generates a 23-character random string using a MAC address (as byte array) as the seed.
-func generateClientID(mac []byte) string {
-	const idLen = 23
-	const letterBytes = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	const (
-		letterIdxBits = 6                    // 6 bits to represent a letter index
-		letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
-		letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
-	)
-
-	seed := int64(0)
-	for _, b := range mac {
-		seed += int64(b)
-	}
-
-	src := rand.NewSource(seed)
-	b := make([]byte, idLen)
-	for i, cache, remain := idLen-1, src.Int63(), letterIdxMax; i >= 0; {
-		if remain == 0 {
-			cache, remain = src.Int63(), letterIdxMax
-		}
-		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
-			b[i] = letterBytes[idx]
-			i--
-		}
-		cache >>= letterIdxBits
-		remain--
-	}
-
-	return *(*string)(unsafe.Pointer(&b))
-}
-
-// Returns (or generates if needed) the 23-character ID for this node using
-// the MAC address of the first available network interface as seed.
-func ID() string {
-	if id != "" {
-		return id
-	}
-
-	ifaces, err := net.Interfaces()
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, iface := range ifaces {
-		mac := iface.HardwareAddr
-		if len(mac) > 0 {
-			id = generateClientID(iface.HardwareAddr)
-			break
-		}
-	}
-
-	return id
 }
 
 // Disconnect will end the connection with the server, but not before waiting the specified

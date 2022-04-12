@@ -8,7 +8,7 @@ require (
 	github.com/gofiber/template v1.6.26
 	github.com/mdlayher/ethtool v0.0.0-20220213132912-856bd6cb8a38
 	github.com/mdlayher/wifi v0.0.0-20220330172155-a44c70b6d3c8
-	github.com/openrfsense/common v0.0.0-20220409104416-88ab5cd43be7
+	github.com/openrfsense/common v0.0.0-20220411212906-94c54c36075b
 	github.com/spf13/pflag v1.0.5
 )
 
