@@ -54,6 +54,8 @@ github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3
 github.com/Joker/hpp v1.0.0/go.mod h1:8x5n+M1Hp5hC0g8okX3sR3vFQwynaX/UgSOM9MeBKzY=
 github.com/Joker/jade v1.1.3/go.mod h1:T+2WLyt7VH6Lp0TRxQrUYEs64nRc83wkMQrfeIQKduM=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
+github.com/Wifx/gonetworkmanager v0.4.0 h1:iZ7o3z3YIqEEAa+bBOCwQkLLUQuxG02CdiE7NCe5y6A=
+github.com/Wifx/gonetworkmanager v0.4.0/go.mod h1:EdhHf2O00IZXfMv9LC6CS6SgTwcMTg/ZSDhGvch0cs8=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
@@ -154,6 +156,8 @@ github.com/go-logfmt/logfmt v0.3.0/go.mod h1:Qt1PoO58o5twSAckw1HlFXLmHsOX5/0LbT9
 github.com/go-logfmt/logfmt v0.4.0/go.mod h1:3RMwSq7FuexP4Kalkev3ejPJsZTpXXBr9+V4qmtdjCk=
 github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/melR3HDY=
 github.com/go-test/deep v1.0.2-0.20181118220953-042da051cf31/go.mod h1:wGDj63lr65AM2AQyKZd/NYHGb0R+1RLqB8NKt3aSFNA=
+github.com/godbus/dbus/v5 v5.0.2/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
+github.com/godbus/dbus/v5 v5.0.4 h1:9349emZab16e7zQvpmsbtjc18ykshndd8y2PG3sgJbA=
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 github.com/gofiber/fiber/v2 v2.30.0/go.mod h1:1Ega6O199a3Y7yDGuM9FyXDPYQfv+7/y48wl6WCwUF4=
 github.com/gofiber/fiber/v2 v2.31.0 h1:M2rWPQbD5fDVAjcoOLjKRXTIlHesI5Eq7I5FEQPt4Ow=
@@ -358,8 +362,9 @@ github.com/mitchellh/go-wordwrap v1.0.0/go.mod h1:ZXFpozHsX6DPmq2I0TCekCxypsnAUb
 github.com/mitchellh/mapstructure v0.0.0-20160808181253-ca63d7c062ee/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
 github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
 github.com/mitchellh/mapstructure v1.4.1/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
-github.com/mitchellh/mapstructure v1.4.3 h1:OVowDSCllw/YjdLkam3/sm7wEtOy59d8ndGgCcyj8cs=
 github.com/mitchellh/mapstructure v1.4.3/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
+github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
+github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/mitchellh/reflectwalk v1.0.0/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
 github.com/mitchellh/reflectwalk v1.0.2 h1:G2LzWKi524PWgd3mLHV8Y5k7s6XUvT0Gef6zxSIeXaQ=
 github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
@@ -373,14 +378,8 @@ github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWb
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/npillmayer/nestext v0.1.3/go.mod h1:h2lrijH8jpicr25dFY+oAJLyzlya6jhnuG+zWp9L0Uk=
 github.com/oklog/run v1.0.0/go.mod h1:dlhp/R75TPv97u0XWUtDeV/lRKWPKSdTuV0TZvrmrQA=
-github.com/openrfsense/common v0.0.0-20220409104416-88ab5cd43be7 h1:HRbvipxFj8tv66GaXzK1jrcy1Lm7fYrKeLe8QZtlqpQ=
-github.com/openrfsense/common v0.0.0-20220409104416-88ab5cd43be7/go.mod h1:9sjwRYF4P6u3dcq2kzp6CT0DyFC3ve1qakme1iQE28s=
-github.com/openrfsense/common v0.0.0-20220411172805-9997b4a40a6b h1:GC9++kC3qU2+CWl/pyRh1mnfiqTTEdQ6i5DY+/HfAtc=
-github.com/openrfsense/common v0.0.0-20220411172805-9997b4a40a6b/go.mod h1:9sjwRYF4P6u3dcq2kzp6CT0DyFC3ve1qakme1iQE28s=
-github.com/openrfsense/common v0.0.0-20220411210807-a9301029c8ff h1:MLanCoTgknNRkKSa6RQFqn2QH/j+o7JLrDZugAR2SZM=
-github.com/openrfsense/common v0.0.0-20220411210807-a9301029c8ff/go.mod h1:9sjwRYF4P6u3dcq2kzp6CT0DyFC3ve1qakme1iQE28s=
-github.com/openrfsense/common v0.0.0-20220411212906-94c54c36075b h1:mpafS5fdrGGuLv9FCcG9pXWm86tM3yCzW/XzVvbuncQ=
-github.com/openrfsense/common v0.0.0-20220411212906-94c54c36075b/go.mod h1:9sjwRYF4P6u3dcq2kzp6CT0DyFC3ve1qakme1iQE28s=
+github.com/openrfsense/common v0.0.0-20220421185327-afb807dbda35 h1:Hx8fZIU/igjMZ4idgOesIsrCgWs9ku5ohy9mwIy7tkE=
+github.com/openrfsense/common v0.0.0-20220421185327-afb807dbda35/go.mod h1:yTybi3U7GYbJD7D7vPj01HC9d+3qYuuFBBZJGKSEW2Q=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pascaldekloe/goe v0.1.0/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pelletier/go-toml v1.7.0/go.mod h1:vwGMzjaWMwyfHwgIBhI2YUM4fB6nL6lVAvS1LBMMhTE=

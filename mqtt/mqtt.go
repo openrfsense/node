@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	emitter "github.com/emitter-io/go/v2"
@@ -15,20 +16,33 @@ import (
 	"github.com/openrfsense/common/keystore"
 	"github.com/openrfsense/common/logging"
 	"github.com/openrfsense/common/types"
+	"github.com/openrfsense/node/system"
 )
 
 var (
-	Client     *emitter.Client
+	client     *emitter.Client
 	DefaultTTL = 600 * time.Second
 
-	log = logging.New(
-		logging.WithPrefix("mqtt"),
-		logging.WithLevel(logging.DebugLevel),
-		logging.WithFlags(logging.FlagsDevelopment),
-	)
+	log = logging.New().
+		WithPrefix("mqtt").
+		WithLevel(logging.DebugLevel).
+		WithFlags(logging.FlagsDevelopment)
 )
 
-// TODO: make a better init procedure and/or move to openrfsense-common
+// Type Payload represents a payload which can be sent over MQTT.
+// Since emitter rejects anything which isn't a string or byte array,
+// using generics ensures the handlers always return a payload which
+// can be sent. In general, message sending has to be ensured.
+type Payload interface {
+	~string | ~[]byte
+}
+
+// Type Handler represents a simplified emitter.MessageHandler which returns a payload.
+// The payload is then managed by the Handle function.
+type Handler[P Payload] func(m emitter.Message) (P, error)
+
+// Starts the internal MQTT client (and connects to the broker) and sets up handlers for
+//  messages on the right topics.
 func Init() {
 	brokerHost := fmt.Sprintf("%s:%d", config.Must[string]("mqtt.host"), config.Must[int]("mqtt.port"))
 	brokerUrl := url.URL{
@@ -36,8 +50,8 @@ func Init() {
 		Host:   brokerHost,
 	}
 
-	Client = emitter.NewClient(
-		emitter.WithUsername(ID()),
+	client = emitter.NewClient(
+		emitter.WithUsername(system.ID()),
 		emitter.WithBrokers(brokerUrl.String()),
 		emitter.WithAutoReconnect(true),
 		emitter.WithConnectTimeout(10*time.Second),
@@ -45,28 +59,53 @@ func Init() {
 		emitter.WithMaxReconnectInterval(2*time.Minute),
 	)
 
-	// FIXME: remove this
-	Client.OnMessage(func(_ *emitter.Client, msg emitter.Message) {
-		log.Debugf("mqtt", "[emitter] -> [B] received: '%s' topic: '%s'\n", msg.Payload(), msg.Topic())
-	})
-
-	err := Client.Connect()
+	err := client.Connect()
 	if err != nil {
 		ticker := time.NewTicker(30 * time.Second)
-		for !Client.IsConnected() {
-			logging.Warn("mqtt", "Could not connect to MQTT broker, trying again")
+		for !client.IsConnected() {
+			log.Warn("Could not connect to MQTT broker, trying again")
 			<-ticker.C
-			Client.Connect()
+			client.Connect()
 		}
 		ticker.Stop()
 	}
 
-	Client.OnConnect(func(_ *emitter.Client) {
-		logging.Info("mqtt", "Connected to MQTT broker")
+	client.OnConnect(func(_ *emitter.Client) {
+		log.Info("Connected to MQTT broker")
+	})
+
+	Handle("/all/", "get", HandlerStatsBrief)
+	Handle("stats/", "get", HandlerStats)
+}
+
+// Register a MQTT message handler for requests. The requests are actually received
+// at node/method/path/ and payloads returned by the handler are sent to node/path/.
+func Handle[P Payload](path string, method string, handler Handler[P]) {
+	trimmedPath := strings.Trim(path, "/")
+	trimmedMethod := strings.Trim(method, "/")
+
+	// FIXME: use something better
+	var pathResp, pathReq string
+	if strings.HasPrefix(path, "/") {
+		pathResp = fmt.Sprintf("node/%s/", trimmedPath)
+		pathReq = fmt.Sprintf("node/%s/%s/", trimmedMethod, trimmedPath)
+	} else {
+		pathResp = fmt.Sprintf("node/%s/%s/", system.ID(), trimmedPath)
+		pathReq = fmt.Sprintf("node/%s/%s/%s/", trimmedMethod, system.ID(), trimmedPath)
+	}
+
+	Subscribe(pathReq, func(_ *emitter.Client, m emitter.Message) {
+		payload, err := handler(m)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		log.Debugf("sending %T on %s", payload, pathResp)
+		Publish(pathResp, payload)
 	})
 }
 
-// Custom keystore.Retriever which fetches channel keys from the OpenRFSense backend
+// Custom keystore.Retriever which fetches channel keys from the OpenRFSense backend.
 func NewBackendRetriever() keystore.Retriever {
 	client := &http.Client{
 		Timeout: 10 * time.Second,
@@ -105,49 +144,11 @@ func NewBackendRetriever() keystore.Retriever {
 		}
 		defer resp.Body.Close()
 
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return "", err
 		}
 
 		return string(body), nil
 	}
-}
-
-// Disconnect will end the connection with the server, but not before waiting the specified
-// time for existing work to be completed.
-func Disconnect(waitTime time.Duration) {
-	Client.Disconnect(waitTime)
-}
-
-// Wrapper around emitter.Presence with automatic key management.
-// Presence sends a presence request to the broker.
-func Presence(channel string, status, changes bool) error {
-	key, err := keystore.Must(channel, "p")
-	if err != nil {
-		return err
-	}
-	return Client.Presence(key, channel, status, changes)
-}
-
-// Wrapper around emitter.Publish with automatic key management.
-// Publish will publish a message with the specified QoS and content to the specified topic.
-// Returns a token to track delivery of the message to the broker
-func Publish(channel string, payload interface{}, options ...emitter.Option) error {
-	key, err := keystore.Must(channel, "w")
-	if err != nil {
-		return err
-	}
-	return Client.Publish(key, channel, payload, options...)
-}
-
-// Wrapper around emitter.Subscribe with automatic key management.
-// Subscribe starts a new subscription. Provide a MessageHandler to be executed when a
-// message is published on the topic provided.
-func Subscribe(channel string, optionalHandler emitter.MessageHandler, options ...emitter.Option) error {
-	key, err := keystore.Must(channel, "r")
-	if err != nil {
-		return err
-	}
-	return Client.Subscribe(key, channel, optionalHandler, options...)
 }

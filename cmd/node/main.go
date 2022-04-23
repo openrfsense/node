@@ -7,7 +7,6 @@ import (
 	"syscall"
 	"time"
 
-	emitter "github.com/emitter-io/go/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/pflag"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/openrfsense/common/logging"
 	"github.com/openrfsense/node/api"
 	"github.com/openrfsense/node/mqtt"
+	"github.com/openrfsense/node/system"
 	"github.com/openrfsense/node/ui"
 )
 
@@ -40,6 +40,7 @@ type NodeConfig struct {
 	MQTT    `koanf:"mqtt"`
 }
 
+// FIXME: move elsewhere
 var DefaultConfig = NodeConfig{
 	Node: Node{
 		Port: 8080,
@@ -58,18 +59,17 @@ var (
 	commit  = ""
 	date    = ""
 
-	log = logging.New(
-		logging.WithPrefix("main"),
-		logging.WithLevel(logging.DebugLevel),
-		logging.WithFlags(logging.FlagsDevelopment),
-	)
+	log = logging.New().
+		WithPrefix("main").
+		WithLevel(logging.DebugLevel).
+		WithFlags(logging.FlagsDevelopment)
 )
 
 func main() {
 	configPath := pflag.StringP("config", "c", "", "path to yaml config file")
 	pflag.Parse()
 
-	log.Infof("Starting node %s", mqtt.ID())
+	log.Infof("Starting node %s", system.ID())
 
 	log.Info("Loading config")
 	err := config.Load(*configPath, DefaultConfig)
@@ -82,13 +82,6 @@ func main() {
 
 	log.Info("Connecting to MQTT")
 	mqtt.Init()
-
-	// FIXME: move elsewhere
-	mqtt.Subscribe("sensors/all/", nil)
-	mqtt.Subscribe("sensors/"+mqtt.ID()+"/cmd/", func(_ *emitter.Client, m emitter.Message) {
-		log.Debugf("received remote command", "cmd", string(m.Payload()))
-	})
-	mqtt.Publish("sensors/"+mqtt.ID()+"/output/", "hello")
 
 	log.Info("Starting internal API")
 	router := fiber.New(fiber.Config{

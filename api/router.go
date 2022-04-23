@@ -9,10 +9,10 @@ import (
 	"github.com/openrfsense/common/logging"
 )
 
-var log = logging.New(
-	logging.WithPrefix("api"),
-	logging.WithFlags(logging.FlagsDevelopment),
-)
+var log = logging.New().
+	WithPrefix("api").
+	WithLevel(logging.DebugLevel).
+	WithFlags(logging.FlagsDevelopment)
 
 // Configure a router and use logger for the interal API. Initializes REST endpoints under the given prefix.
 func Init(router *fiber.App, prefix string) {
@@ -25,7 +25,7 @@ func Init(router *fiber.App, prefix string) {
 
 	router.Route(prefix, func(router fiber.Router) {
 		router.Post("/network/wifi", func(c *fiber.Ctx) error {
-			// FIXME: find distro-indipendent way of registering a new network.
+			// FIXME: implement this
 			log.Debug("router", "SSID: "+c.FormValue("ssid"))
 			log.Debug("router", "Password: "+c.FormValue("password"))
 

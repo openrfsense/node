@@ -15,10 +15,9 @@ import (
 	"github.com/openrfsense/common/logging"
 )
 
-var log = logging.New(
-	logging.WithPrefix("ui"),
-	logging.WithFlags(logging.FlagsDevelopment),
-)
+var log = logging.New().
+	WithPrefix("ui").
+	WithFlags(logging.FlagsDevelopment)
 
 //go:embed views/*
 var viewsFs embed.FS
@@ -106,7 +105,7 @@ func renderIndex(c *fiber.Ctx) error {
 		return err
 	}
 
-	// FIXME: ethtool is slow at detecting the link state, use a watcher + context?
+	// FIXME: ethtool is slow/broken on Pi, use gonetworkmanager
 	states, err := ethtool.LinkStates()
 	if err != nil {
 		log.Error("failed to get eth link infos")

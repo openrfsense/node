@@ -2,17 +2,19 @@ before:
   hooks:
     - go mod tidy
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
 changelog:
   sort: asc
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
+      - "^docs:"
+      - "^test:"
+
 builds:
-  - main: ./cmd/node
+  - id: node
+    main: ./cmd/node
     binary: orfs-node
     env:
       - CGO_ENABLED=0
@@ -21,6 +23,7 @@ builds:
       # - windows_amd64
       - linux_arm64
       - linux_arm_7
+
 archives:
   - replacements:
       darwin: MacOS
@@ -28,6 +31,7 @@ archives:
       windows: Windows
       386: i386
       amd64: x86_64
+
 nfpms:
   - bindir: /usr/bin
     package_name: openrfsense-node
