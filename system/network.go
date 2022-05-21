@@ -2,6 +2,7 @@ package system
 
 import (
 	"github.com/Wifx/gonetworkmanager"
+
 	"github.com/openrfsense/common/stats"
 )
 
@@ -44,4 +45,20 @@ func (pn providerNetwork) Stats() (interface{}, error) {
 		Devices: devices,
 		Status:  state.String(),
 	}, nil
+}
+
+// Returns true if the node is connected to the internet (full connectivity, not
+// just a local network connection).
+func IsOnline() bool {
+	nm, err := gonetworkmanager.NewNetworkManager()
+	if err != nil {
+		return false
+	}
+
+	state, err := nm.State()
+	if err != nil {
+		return false
+	}
+
+	return state == gonetworkmanager.NmStateConnectedGlobal
 }

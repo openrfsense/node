@@ -1,20 +1,18 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/pflag"
 
 	"github.com/openrfsense/common/config"
-	"github.com/openrfsense/common/keystore"
 	"github.com/openrfsense/common/logging"
 	"github.com/openrfsense/node/api"
-	"github.com/openrfsense/node/mqtt"
+	"github.com/openrfsense/node/nats"
 	"github.com/openrfsense/node/system"
 	"github.com/openrfsense/node/ui"
 )
@@ -28,16 +26,15 @@ type Backend struct {
 	Users map[string]string `koanf:"users"`
 }
 
-type MQTT struct {
-	Protocol string `koanf:"protocol"`
-	Host     string `koanf:"host"`
-	Port     int    `koanf:"port"`
+type NATS struct {
+	Host string `koanf:"host"`
+	Port int    `koanf:"port"`
 }
 
 type NodeConfig struct {
 	Node    `koanf:"node"`
 	Backend `koanf:"backend"`
-	MQTT    `koanf:"mqtt"`
+	NATS    `koanf:"nats"`
 }
 
 // FIXME: move elsewhere
@@ -48,9 +45,8 @@ var DefaultConfig = NodeConfig{
 	Backend: Backend{
 		Port: 8080,
 	},
-	MQTT: MQTT{
-		Protocol: "tcp",
-		Port:     8080,
+	NATS: NATS{
+		Port: 0,
 	},
 }
 
@@ -66,7 +62,8 @@ var (
 )
 
 func main() {
-	configPath := pflag.StringP("config", "c", "", "path to yaml config file")
+	configPath := pflag.StringP("config", "c", "/etc/openrfsense/config.yml", "path to yaml config file")
+	natsTokenPath := pflag.StringP("token", "t", "/etc/openrfsense/token.txt", "path to yaml config file")
 	pflag.Parse()
 
 	log.Infof("Starting node %s", system.ID())
@@ -77,40 +74,29 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Info("Starting keystore")
-	keystore.Init(mqtt.NewBackendRetriever(), mqtt.DefaultTTL)
-
-	log.Info("Connecting to MQTT")
-	mqtt.Init()
+	// Connect ot NATS only if the node is connected to the internet
+	// if system.IsOnline() {
+	log.Info("Connecting to NATS")
+	err = nats.Init(*natsTokenPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer nats.Disconnect()
+	// }
 
 	log.Info("Starting internal API")
-	router := fiber.New(fiber.Config{
+
+	router := api.Start("/api", fiber.Config{
 		AppName:               "openrfsense-node",
 		DisableStartupMessage: true,
 		PassLocalsToViews:     true,
 		Views:                 ui.NewEngine(),
 	})
-
-	api.Init(router, "/api")
 	ui.Init(router)
+	defer router.Shutdown()
 
-	// Graceful shutdown
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	shutdown := make(chan struct{})
-
-	go func() {
-		<-c
-		router.Shutdown()
-		mqtt.Disconnect(time.Second)
-		log.Info("Shutting down")
-		shutdown <- struct{}{}
-	}()
-
-	addr := fmt.Sprintf(":%d", config.GetWeakInt("node.port"))
-	if err := router.Listen(addr); err != nil {
-		log.Fatal(err)
-	}
-
-	<-shutdown
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+	<-ctx.Done()
+	log.Info("Shutting down")
 }

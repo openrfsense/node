@@ -54,21 +54,9 @@ func GetUptime() (time.Duration, error) {
 
 // Returns full system stats.
 func GetStats() (*stats.Stats, error) {
-	hostname, err := os.Hostname()
+	s, err := GetStatsBrief()
 	if err != nil {
 		return nil, err
-	}
-
-	uptime, err := GetUptime()
-	if err != nil {
-		return nil, err
-	}
-
-	s := stats.Stats{
-		ID:       ID(),
-		Hostname: hostname,
-		Model:    GetModel(),
-		Uptime:   uptime,
 	}
 
 	err = s.Provide(providerMemory{}, providerFs{}, providerNetwork{})
@@ -76,7 +64,7 @@ func GetStats() (*stats.Stats, error) {
 		return nil, err
 	}
 
-	return &s, nil
+	return s, nil
 }
 
 // Returns brief system stats, enough to identify the machine. For more in-depth metrics, use GetStats.

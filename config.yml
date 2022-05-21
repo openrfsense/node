@@ -5,7 +5,5 @@ backend:
   port: 8081
   username: openrfsense
   password: openrfsense
-mqtt:
-  protocol: tcp
-  host: "127.0.0.1"
-  port: 8080
+nats:
+  port: 4222

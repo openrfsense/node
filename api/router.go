@@ -1,11 +1,14 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 
+	"github.com/openrfsense/common/config"
 	"github.com/openrfsense/common/logging"
 )
 
@@ -14,8 +17,10 @@ var log = logging.New().
 	WithLevel(logging.DebugLevel).
 	WithFlags(logging.FlagsDevelopment)
 
-// Configure a router and use logger for the interal API. Initializes REST endpoints under the given prefix.
-func Init(router *fiber.App, prefix string) {
+// Create a router and use logger for the internal API. Initializes REST endpoints under the given prefix.
+func Start(prefix string, routerConfig ...fiber.Config) *fiber.App {
+	router := fiber.New(routerConfig...)
+
 	// TODO: is auth needed?
 	router.Use(
 		logger.New(),
@@ -24,12 +29,17 @@ func Init(router *fiber.App, prefix string) {
 	)
 
 	router.Route(prefix, func(router fiber.Router) {
-		router.Post("/network/wifi", func(c *fiber.Ctx) error {
-			// FIXME: implement this
-			log.Debug("router", "SSID: "+c.FormValue("ssid"))
-			log.Debug("router", "Password: "+c.FormValue("password"))
-
-			return c.SendString("")
-		})
+		router.Post("/network/wifi", HandleWifiPost)
+		router.Post("/config", HandleConfigPost)
 	})
+
+	addr := fmt.Sprintf(":%d", config.GetWeakInt("node.port"))
+
+	go func() {
+		if err := router.Listen(addr); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	return router
 }

@@ -37,7 +37,7 @@
     </div>
     {{ end }}
     <div class="Box-row">
-        <form id="wifi-form" action="/api/network/wifi" method="post">
+        <form id="wifi-form" action="/api/network/wifi" method="post" autocomplete="off">
             <div class="form-group">
                 <div class="form-group-header">
                     <label for="ssid">SSID</label>
@@ -57,7 +57,7 @@
             </div>
             
             <div class="form-actions mt-4">
-                <input class="btn btn-primary btn-block" type="submit" value="Connect" />
+                <input class="btn btn-primary" type="submit" value="Connect" />
             </div>
         </form>
     </div>

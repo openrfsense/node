@@ -1,0 +1,28 @@
+<div class="Box">
+    <div class="Box-header d-flex flex-items-center">
+        <div class="d-inline overflow-hidden flex-auto">
+            <div class="d-inline-block v-align-middle mr-2">
+                <span class="material-icons md-36">build</span>
+            </div>
+            <div class="d-inline-block v-align-middle">
+                <h3>Configuration</h3>
+            </div>
+        </div>
+    </div>
+    <div class="Box-row">
+        <form id="config-form" action="/api/config" method="post" autocomplete="off">
+            <div class="form-group">
+                <div class="form-group-header">
+                    <label for="ssid">NATS Token</label>
+                </div>
+                <div class="form-group-body">
+                    <input class="form-control input-block text-mono" type="text" placeholder="{{ .config.nats.token }}" id="nats-token" name="nats-token" />
+                </div>
+            </div>
+            
+            <div class="form-actions mt-4">
+                <input class="btn btn-primary" type="submit" value="Save" />
+            </div>
+        </form>
+    </div>
+</div>
