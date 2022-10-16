@@ -56,7 +56,6 @@ func main() {
 		log.Fatal(err)
 	}
 	sensor.Init(cmdFlags)
-	log.Debugf("%#v\n", sensor.Manager())
 
 	// Connect ot NATS only if the node is connected to the internet
 	// if system.IsOnline() {
@@ -79,7 +78,12 @@ func main() {
 	})
 	// Initialize UI (templated web pages)
 	ui.Init(router)
-	defer router.Shutdown()
+	defer func() {
+		err = router.Shutdown()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()

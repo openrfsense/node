@@ -36,9 +36,10 @@ func HandlerAggregatedMeasurement(conn *nats.EncodedConn, msg *nats.Msg) error {
 
 	for _, id := range amr.Sensors {
 		if id == system.ID() {
-			log.Debugf("%#v\n", amr)
+			log.Debugf("Got measurement request: %#v\n", amr)
+			return HandlerStatsBrief(conn, msg)
 		}
 	}
 
-	return HandlerStatsBrief(conn, msg)
+	return nil
 }
