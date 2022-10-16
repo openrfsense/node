@@ -39,11 +39,11 @@ var _ stats.Provider = providerMemory{}
 // Stats provider for memory information.
 type providerMemory struct{}
 
-func (pn providerMemory) Name() string {
+func (providerMemory) Name() string {
 	return "memory"
 }
 
-func (pn providerMemory) Stats() (interface{}, error) {
+func (providerMemory) Stats() (interface{}, error) {
 	data, err := os.ReadFile("/proc/meminfo")
 	if err != nil {
 		return nil, fmt.Errorf("%w: error reading memory info", err)

@@ -1,3 +1,4 @@
+project_name: openrfsense-node
 before:
   hooks:
     - go mod tidy

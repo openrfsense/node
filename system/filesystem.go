@@ -36,11 +36,11 @@ var _ stats.Provider = providerFs{}
 // Stats provider for network information.
 type providerFs struct{}
 
-func (pn providerFs) Name() string {
+func (providerFs) Name() string {
 	return "fs"
 }
 
-func (pn providerFs) Stats() (interface{}, error) {
+func (providerFs) Stats() (interface{}, error) {
 	data, err := os.ReadFile("/proc/self/mountinfo")
 	if err != nil {
 		return nil, fmt.Errorf("%w: error detecting mounted filesystems", err)

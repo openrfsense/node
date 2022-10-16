@@ -21,11 +21,11 @@ var _ stats.Provider = providerNetwork{}
 // Stats provider for network information.
 type providerNetwork struct{}
 
-func (pn providerNetwork) Name() string {
+func (providerNetwork) Name() string {
 	return "network"
 }
 
-func (pn providerNetwork) Stats() (interface{}, error) {
+func (providerNetwork) Stats() (interface{}, error) {
 	nm, err := gonetworkmanager.NewNetworkManager()
 	if err != nil {
 		return nil, err

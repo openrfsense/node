@@ -1,16 +1,14 @@
 package system
 
 import (
-	"log"
 	"math/rand"
-	"net"
 	"unsafe"
 )
 
 var id string
 
-// Generates a 23-character random string using a MAC address (as byte array) as the seed.
-func generateClientID(mac []byte) string {
+// Generates a 23-character random string using an arbitrary byte array as the seed.
+func generateClientID(bytes []byte) string {
 	const idLen = 23
 	const letterBytes = "abcdefghijklmnopqrstuvwxyz"
 	const (
@@ -20,7 +18,7 @@ func generateClientID(mac []byte) string {
 	)
 
 	seed := int64(0)
-	for _, b := range mac {
+	for _, b := range bytes {
 		seed += int64(b)
 	}
 
@@ -42,23 +40,13 @@ func generateClientID(mac []byte) string {
 }
 
 // Returns (or generates if needed) the 23-character ID for this node using
-// the MAC address of the first available network interface as seed.
+// the board's vendor-model string (as reported by SysFS) as seed.
 func ID() string {
 	if id != "" {
 		return id
 	}
 
-	ifaces, err := net.Interfaces()
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, iface := range ifaces {
-		mac := iface.HardwareAddr
-		if len(mac) > 0 {
-			id = generateClientID(iface.HardwareAddr)
-			break
-		}
-	}
-
+	model := GetModel()
+	id = generateClientID([]byte(model))
 	return id
 }

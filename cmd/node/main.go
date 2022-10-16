@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,42 +14,10 @@ import (
 	"github.com/openrfsense/common/logging"
 	"github.com/openrfsense/node/api"
 	"github.com/openrfsense/node/nats"
+	"github.com/openrfsense/node/sensor"
 	"github.com/openrfsense/node/system"
 	"github.com/openrfsense/node/ui"
 )
-
-type Node struct {
-	Port int `koanf:"port"`
-}
-
-type Backend struct {
-	Port  int               `koanf:"port"`
-	Users map[string]string `koanf:"users"`
-}
-
-type NATS struct {
-	Host string `koanf:"host"`
-	Port int    `koanf:"port"`
-}
-
-type NodeConfig struct {
-	Node    `koanf:"node"`
-	Backend `koanf:"backend"`
-	NATS    `koanf:"nats"`
-}
-
-// FIXME: move elsewhere
-var DefaultConfig = NodeConfig{
-	Node: Node{
-		Port: 8080,
-	},
-	Backend: Backend{
-		Port: 8080,
-	},
-	NATS: NATS{
-		Port: 0,
-	},
-}
 
 var (
 	version = ""
@@ -63,8 +32,14 @@ var (
 
 func main() {
 	configPath := pflag.StringP("config", "c", "/etc/openrfsense/config.yml", "path to yaml config file")
-	natsTokenPath := pflag.StringP("token", "t", "/etc/openrfsense/token.txt", "path to yaml config file")
+	natsTokenPath := pflag.StringP("token", "t", "/etc/openrfsense/token.txt", "path to token file")
+	showVersion := pflag.BoolP("version", "v", false, "shows program version and build info")
 	pflag.Parse()
+
+	if *showVersion {
+		fmt.Printf("openrfsense-node v%s (%s) built on %s\n", version, commit, date)
+		return
+	}
 
 	log.Infof("Starting node %s", system.ID())
 
@@ -73,6 +48,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	log.Info("Initializing sensor manager")
+	cmdFlags := sensor.CommandFlags{}
+	err = config.Unmarshal("node.sensor", &cmdFlags)
+	if err != nil {
+		log.Fatal(err)
+	}
+	sensor.Init(cmdFlags)
+	log.Debugf("%#v\n", sensor.Manager())
 
 	// Connect ot NATS only if the node is connected to the internet
 	// if system.IsOnline() {
@@ -86,12 +70,14 @@ func main() {
 
 	log.Info("Starting internal API")
 
+	// Start the internal backend
 	router := api.Start("/api", fiber.Config{
 		AppName:               "openrfsense-node",
 		DisableStartupMessage: true,
 		PassLocalsToViews:     true,
 		Views:                 ui.NewEngine(),
 	})
+	// Initialize UI (templated web pages)
 	ui.Init(router)
 	defer router.Shutdown()
 

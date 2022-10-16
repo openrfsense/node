@@ -46,8 +46,23 @@ func Init(tokenFile string) error {
 		return err
 	}
 
-	handle(conn, system.ID(), ".all", HandlerStatsBrief)
-	handle(conn, system.ID(), "stats", HandlerStats)
+	// Handle requests on node.all
+	err = handle(conn, system.ID(), ".all", HandlerStatsBrief)
+	if err != nil {
+		return err
+	}
+
+	// Handle requests on node.$id.stats
+	err = handle(conn, system.ID(), "stats", HandlerStats)
+	if err != nil {
+		return err
+	}
+
+	// Handle requests on node.all.aggregated
+	err = handle(conn, system.ID(), ".all.aggregated", HandlerAggregatedMeasurement)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -55,7 +70,10 @@ func Init(tokenFile string) error {
 // Drain and close the internal NATS connection.
 func Disconnect() {
 	if conn != nil {
-		conn.Drain()
+		err := conn.Drain()
+		if err != nil {
+			log.Error(err)
+		}
 		conn.Close()
 	}
 }

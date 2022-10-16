@@ -59,7 +59,12 @@ func GetStats() (*stats.Stats, error) {
 		return nil, err
 	}
 
-	err = s.Provide(providerMemory{}, providerFs{}, providerNetwork{})
+	err = s.Provide(
+		providerLocation{},
+		providerMemory{},
+		providerFs{},
+		providerNetwork{},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -79,10 +84,20 @@ func GetStatsBrief() (*stats.Stats, error) {
 		return nil, err
 	}
 
-	return &stats.Stats{
+	s := &stats.Stats{
 		ID:       ID(),
 		Hostname: hostname,
 		Model:    GetModel(),
 		Uptime:   uptime,
-	}, nil
+	}
+
+	err = s.Provide(
+		providerSensor{},
+		providerLocation{},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }

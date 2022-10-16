@@ -64,10 +64,10 @@ func newEthMap() (fiber.Map, error) {
 	}
 
 	ethtool, err := ethtool.New()
-	defer ethtool.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer ethtool.Close()
 
 	// FIXME: ethtool is slow/broken on Pi, use gonetworkmanager
 	states, err := ethtool.LinkStates()

@@ -1,8 +1,11 @@
 package nats
 
 import (
+	"encoding/json"
+
 	nats "github.com/nats-io/nats.go"
 
+	"github.com/openrfsense/common/types"
 	"github.com/openrfsense/node/system"
 )
 
@@ -22,4 +25,20 @@ func HandlerStatsBrief(conn *nats.EncodedConn, msg *nats.Msg) error {
 	}
 
 	return conn.Publish(msg.Reply, *stats)
+}
+
+func HandlerAggregatedMeasurement(conn *nats.EncodedConn, msg *nats.Msg) error {
+	amr := types.AggregatedMeasurementRequest{}
+	err := json.Unmarshal(msg.Data, &amr)
+	if err != nil {
+		return err
+	}
+
+	for _, id := range amr.Sensors {
+		if id == system.ID() {
+			log.Debugf("%#v\n", amr)
+		}
+	}
+
+	return HandlerStatsBrief(conn, msg)
 }
