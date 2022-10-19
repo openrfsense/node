@@ -1,64 +1,58 @@
-<div class="Box">
-    <div class="Box-header d-flex flex-items-center">
-        <div class="d-inline overflow-hidden flex-auto">
-            <div class="d-inline-block v-align-middle mr-2">
-                <span class="material-icons md-36">wifi</span>
-            </div>
-            <div class="d-inline-block v-align-middle">
-                <h3>Wireless</h3>
-            </div>
-        </div>
-        {{ if .wifi.connected }}
-        <span class="State State--open mr-2">Online</span>
-        {{ else }}
-        <span class="State State--closed mr-2">Offline</span>
-        {{ end }}
+<div class="card">
+  <div class="card-header d-flex flex-items-center">
+    <div class="d-inline-flex overflow-hidden flex-wrap align-items-center">
+      <div class="me-2">
+        <img width="32" height="32" src="static/icons/wifi.svg" alt="">
+      </div>
+      <div class="d-inline-block align-middle">
+        <span class="h3">Wireless</span>
+      </div>
     </div>
     {{ if .wifi.connected }}
-    <div class="Box-row">
-        <div>
-            <p>
-                <span class="h4">SSID</span>
-                <span class="text-mono">{{ .wifi.ssid }}</span>
-            </p>
-        </div>
-        <div>
-            <p>
-                <span class="h4">IP</span>
-                <span class="text-mono">{{ .wifi.ip }}</span>
-            </p>
-        </div>
-        <div>
-            <p>
-                <span class="h4">Interface</span>
-                <span class="text-mono">{{ .wifi.interface }}</span>
-            </p>
-        </div>
-    </div>
+    <span class="ms-auto status status-green">Online</span>
+    {{ else }}
+    <span class="ms-auto status status-red">Offline</span>
     {{ end }}
-    <div class="Box-row">
-        <form id="wifi-form" action="/api/network/wifi" method="post" autocomplete="off">
-            <div class="form-group">
-                <div class="form-group-header">
-                    <label for="ssid">SSID</label>
-                </div>
-                <div class="form-group-body">
-                    <input class="form-control input-block text-mono" type="text" placeholder="SSID" id="ssid" name="ssid" />
-                </div>
-            </div>
+  </div>
+  {{ if .wifi.connected }}
+  <div class="table-responsive card-table">
+    <table class="table table-vcenter">
+      <tbody>
+        <tr>
+          <th>SSID</th>
+          <td>
+            <samp>{{ .wifi.ssid }}</samp>
+          </td>
+        </tr>
+        <tr>
+          <th>IP</th>
+          <td>
+            <samp>{{ .wifi.ip }}</samp>
+          </td>
+        </tr>
+        <tr>
+          <th>Interface</th>
+          <td>
+            <samp>{{ .wifi.interface }}</samp>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {{ end }}
+  <div class="card-body">
+    <form id="wifi-form" action="/api/network/wifi" method="post" autocomplete="off">
+      <div class="mb-3">
+        <label class="form-label" for="ssid">SSID</label>
+        <input class="form-control input-block text-mono" type="text" placeholder="SSID" id="ssid" name="ssid" />
+      </div>
 
-            <div class="form-group">
-                <div class="form-group-header">
-                    <label for="password">Password</label>
-                </div>
-                <div class="form-group-body">
-                    <input class="form-control input-block" type="password" placeholder="Password" id="password" name="password" />
-                </div>
-            </div>
-            
-            <div class="form-actions mt-4">
-                <input class="btn btn-primary" type="submit" value="Connect" />
-            </div>
-        </form>
-    </div>
+      <div class="mb-3">
+        <label class="form-label" for="password">Password</label>
+        <input class="form-control input-block" type="password" placeholder="Password" id="password" name="password" />
+      </div>
+
+      <input class="btn btn-primary" type="submit" value="Connect" />
+    </form>
+  </div>
 </div>
