@@ -23,6 +23,9 @@ type StatsFS struct {
 	// Free space
 	Free uint64 `json:"free"`
 
+	// Used space, for conveniency
+	Used uint64 `json:"used"`
+
 	// Available space
 	Available uint64 `json:"available"`
 
@@ -70,6 +73,13 @@ func (providerFs) Stats() (interface{}, error) {
 			Available: statfs.Bavail * uint64(statfs.Bsize),
 			Size:      statfs.Blocks * uint64(statfs.Bsize),
 		}
+
+		// Avoid collecting data for virtual filesystems
+		if fs.Size == 0 {
+			continue
+		}
+
+		fs.Used = fs.Size - fs.Free
 		res = append(res, fs)
 	}
 

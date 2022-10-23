@@ -49,7 +49,7 @@ func GetUptime() (time.Duration, error) {
 		return 0, fmt.Errorf("%w, parsing /proc/uptime", err)
 	}
 
-	return uptime / time.Millisecond, nil
+	return uptime, nil
 }
 
 // Returns full system stats.
