@@ -1,30 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sensor</title>
-  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
-  <link rel="stylesheet" href="/static/tabler.min.css">
-  <script src="/static/tabler.min.js"></script>
-  <script src="/static/app.js"></script>
-</head>
+  {{ template "views/partials/head" . }}
 
 <body>
-  {{ template "views/partials/header" . }}
+  {{ template "views/index/header" . }}
   <div class="container-xl">
     <div class="row row-deck mt-4">
       <div class="col-md-6">
-        {{ template "views/partials/wifi" . }}
+        {{ template "views/index/wifi" . }}
       </div>
       <div class="col-md-6 mt-4 mt-md-0">
-        {{ template "views/partials/ethernet" . }}
+        {{ template "views/index/ethernet" . }}
       </div>
     </div>
     <div class="mt-4">
-      {{ template "views/partials/config" . }}
+      {{ template "views/index/config" . }}
     </div>
   </div>
 </body>
