@@ -43,3 +43,20 @@ func HandlerAggregatedMeasurement(conn *nats.EncodedConn, msg *nats.Msg) error {
 
 	return nil
 }
+
+func HandlerRawMeasurement(conn *nats.EncodedConn, msg *nats.Msg) error {
+	rmr := types.RawMeasurementRequest{}
+	err := json.Unmarshal(msg.Data, &rmr)
+	if err != nil {
+		return err
+	}
+
+	for _, id := range rmr.Sensors {
+		if id == system.ID() {
+			log.Debugf("Got measurement request: %#v\n", rmr)
+			return HandlerStatsBrief(conn, msg)
+		}
+	}
+
+	return nil
+}

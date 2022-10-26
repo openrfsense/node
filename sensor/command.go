@@ -33,6 +33,26 @@ type CommandFlags struct {
 	Command string
 }
 
+var DefaultFlags = CommandFlags{
+	ClkOffset:       "0",
+	DevIndex:        "0",
+	Log2FFTsize:     "8",
+	FreqOverlap:     "0.167",
+	HoppingStrategy: "sequential",
+	AvgFactor:       "5",
+	MinTimeRes:      "0",
+	Window:          "hanning",
+	ClkCorrPeriod:   "3600",
+	FftBatchLen:     "10",
+	SOverlap:        "128",
+	SampRate:        "2400000",
+	MonitorTime:     "0",
+	Gain:            "32.8",
+	MinFreq:         "24000000",
+	MaxFreq:         "1766000000",
+	Command:         "es_sensor",
+}
+
 func generateFlags(sip CommandFlags) []string {
 	ret := []string{}
 
@@ -58,9 +78,4 @@ func generateFlags(sip CommandFlags) []string {
 	ret = append(ret, sip.MinFreq, sip.MaxFreq)
 
 	return ret
-}
-
-func BuildEsSensorCommand(sip CommandFlags) {
-	// flags := generateFlags(sip)
-	// cmd := exec.Command("es_sensor", flags...)
 }

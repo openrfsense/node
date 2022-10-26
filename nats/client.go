@@ -64,6 +64,12 @@ func Init(tokenFile string) error {
 		return err
 	}
 
+	// Handle requests on node.all.raw
+	err = handle(conn, system.ID(), ".all.raw", HandlerRawMeasurement)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

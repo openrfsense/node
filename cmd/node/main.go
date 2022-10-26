@@ -50,12 +50,10 @@ func main() {
 	}
 
 	log.Info("Initializing sensor manager")
-	cmdFlags := sensor.CommandFlags{}
-	err = config.Unmarshal("node.sensor", &cmdFlags)
+	err = sensor.Init()
 	if err != nil {
 		log.Fatal(err)
 	}
-	sensor.Init(cmdFlags)
 
 	// Connect ot NATS only if the node is connected to the internet
 	// if system.IsOnline() {

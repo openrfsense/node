@@ -400,6 +400,16 @@ github.com/npillmayer/nestext v0.1.3/go.mod h1:h2lrijH8jpicr25dFY+oAJLyzlya6jhnu
 github.com/oklog/run v1.0.0/go.mod h1:dlhp/R75TPv97u0XWUtDeV/lRKWPKSdTuV0TZvrmrQA=
 github.com/openrfsense/common v0.0.0-20221015104008-438ea8d5fb05 h1:bZkUDbPgxRB6phu5+rOC60HaJ+0ExgXVXX/dbJ5c+kM=
 github.com/openrfsense/common v0.0.0-20221015104008-438ea8d5fb05/go.mod h1:jdAszKR9g3Z8Aqs3mNxNgOyldwcIZ9oJVoLq5/ICACQ=
+github.com/openrfsense/common v0.0.0-20221024202945-c4fe4af364b9 h1:UV63F6WDay8wZ/aU0raoOzBWRrhLNeXP/RDdtSXMe3w=
+github.com/openrfsense/common v0.0.0-20221024202945-c4fe4af364b9/go.mod h1:jdAszKR9g3Z8Aqs3mNxNgOyldwcIZ9oJVoLq5/ICACQ=
+github.com/openrfsense/common v0.0.0-20221024204507-6b9ac1216d21 h1:6AxDiAjWSStIdGZG/ZazPlnkRWMetdp5MNKrboLft2Q=
+github.com/openrfsense/common v0.0.0-20221024204507-6b9ac1216d21/go.mod h1:jdAszKR9g3Z8Aqs3mNxNgOyldwcIZ9oJVoLq5/ICACQ=
+github.com/openrfsense/common v0.0.0-20221024204747-bec46e0ca13f h1:ANGnXuBupFSA4VX2DN5sMBgs7kR2BUg53xV75LugYXg=
+github.com/openrfsense/common v0.0.0-20221024204747-bec46e0ca13f/go.mod h1:jdAszKR9g3Z8Aqs3mNxNgOyldwcIZ9oJVoLq5/ICACQ=
+github.com/openrfsense/common v0.0.0-20221024210035-0948c4eb6e8e h1:536u3o/UdWlhonT5D9czMdupPmpGqmFhHRSspLe1Wvw=
+github.com/openrfsense/common v0.0.0-20221024210035-0948c4eb6e8e/go.mod h1:jdAszKR9g3Z8Aqs3mNxNgOyldwcIZ9oJVoLq5/ICACQ=
+github.com/openrfsense/common v0.0.0-20221025094856-bc231c9508fb h1:dMj9XzLPwNMCXBHoUIPFj/T2z0/FmD+jaul6UliCi4E=
+github.com/openrfsense/common v0.0.0-20221025094856-bc231c9508fb/go.mod h1:jdAszKR9g3Z8Aqs3mNxNgOyldwcIZ9oJVoLq5/ICACQ=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pascaldekloe/goe v0.1.0/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pelletier/go-toml v1.7.0/go.mod h1:vwGMzjaWMwyfHwgIBhI2YUM4fB6nL6lVAvS1LBMMhTE=

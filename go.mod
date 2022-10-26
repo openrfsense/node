@@ -10,7 +10,7 @@ require (
 	github.com/mdlayher/ethtool v0.0.0-20220830195143-0e16326d06d1
 	github.com/mdlayher/wifi v0.0.0-20220330172155-a44c70b6d3c8
 	github.com/nats-io/nats.go v1.18.0
-	github.com/openrfsense/common v0.0.0-20221015104008-438ea8d5fb05
+	github.com/openrfsense/common v0.0.0-20221025094856-bc231c9508fb
 	github.com/spf13/pflag v1.0.5
 )
 

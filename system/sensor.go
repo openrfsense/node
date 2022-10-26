@@ -9,7 +9,7 @@ import (
 // Type StatsSensor reports sensor status information (busy/free, campaign ID, etc.).
 type StatsSensor struct {
 	// General sensing status
-	Status sensor.Status `json:"status"`
+	Status sensor.StatusEnum `json:"status"`
 
 	// Current campaign ID (if running) or null (if free)
 	CampaignId string `json:"campaignId,omitempty"`
@@ -26,10 +26,8 @@ func (providerSensor) Name() string {
 }
 
 func (providerSensor) Stats() (interface{}, error) {
-	sm := sensor.Manager()
-
 	return StatsSensor{
-		Status:     sm.Status(),
-		CampaignId: sm.CampaignId(),
+		Status:     sensor.Status(),
+		CampaignId: sensor.CampaignId(),
 	}, nil
 }
