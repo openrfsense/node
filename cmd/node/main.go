@@ -10,9 +10,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/pflag"
 
-	"github.com/openrfsense/common/config"
 	"github.com/openrfsense/common/logging"
 	"github.com/openrfsense/node/api"
+	"github.com/openrfsense/node/config"
 	"github.com/openrfsense/node/nats"
 	"github.com/openrfsense/node/sensor"
 	"github.com/openrfsense/node/system"
@@ -44,13 +44,15 @@ func main() {
 	log.Infof("Starting node %s", system.ID())
 
 	log.Info("Loading config")
-	err := config.Load(*configPath, DefaultConfig)
+	konfig, err := config.Load(*configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	system.Init(konfig)
+
 	log.Info("Initializing sensor manager")
-	err = sensor.Init()
+	err = sensor.Init(konfig)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -58,7 +60,7 @@ func main() {
 	// Connect ot NATS only if the node is connected to the internet
 	// if system.IsOnline() {
 	log.Info("Connecting to NATS")
-	err = nats.Init(*natsTokenPath)
+	err = nats.Init(konfig, *natsTokenPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,14 +70,14 @@ func main() {
 	log.Info("Starting internal API")
 
 	// Start the internal backend
-	router := api.Start("/api", fiber.Config{
+	router := api.Start(konfig, "/api", fiber.Config{
 		AppName:               "openrfsense-node",
 		DisableStartupMessage: true,
 		PassLocalsToViews:     true,
 		Views:                 ui.NewEngine(),
 	})
 	// Initialize UI (templated web pages)
-	ui.Init(router)
+	ui.Init(konfig, router)
 	defer func() {
 		err = router.Shutdown()
 		if err != nil {

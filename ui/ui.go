@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/template/html"
+	"github.com/knadh/koanf"
 
 	"github.com/openrfsense/common/logging"
 )
@@ -31,7 +32,7 @@ func NewEngine() *html.Engine {
 }
 
 // Configure a router and use a logger for the UI. Initializes routes and view models.
-func Init(router *fiber.App) {
+func Init(config *koanf.Koanf, router *fiber.App) {
 	router.Use(
 		"/static",
 		compress.New(compress.Config{
@@ -48,29 +49,31 @@ func Init(router *fiber.App) {
 		}),
 	)
 
-	router.Get("/", renderIndex)
+	router.Get("/", renderIndex(config))
 }
 
 // Renders the main webpage for the UI.
-func renderIndex(c *fiber.Ctx) error {
-	wifiMap, err := newWifiMap()
-	if err != nil {
-		return err
-	}
+func renderIndex(config *koanf.Koanf) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		wifiMap, err := newWifiMap()
+		if err != nil {
+			return err
+		}
 
-	ethMap, err := newEthMap()
-	if err != nil {
-		return err
-	}
+		ethMap, err := newEthMap()
+		if err != nil {
+			return err
+		}
 
-	configMap, err := newConfMap()
-	if err != nil {
-		return err
-	}
+		configMap, err := newConfMap(config)
+		if err != nil {
+			return err
+		}
 
-	return c.Render("views/index", fiber.Map{
-		"wifi":   wifiMap,
-		"eth":    ethMap,
-		"config": configMap,
-	})
+		return c.Render("views/index", fiber.Map{
+			"wifi":   wifiMap,
+			"eth":    ethMap,
+			"config": configMap,
+		})
+	}
 }

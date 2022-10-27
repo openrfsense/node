@@ -6,8 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/openrfsense/common/config"
 	"github.com/openrfsense/common/types"
+
+	"github.com/knadh/koanf"
 )
 
 // Type StatusEnum describes the current status of the sensor
@@ -94,7 +95,7 @@ func Status() StatusEnum {
 }
 
 // Initializes a SensorManager singleton.
-func Init() error {
+func Init(config *koanf.Koanf) error {
 	err := config.Unmarshal("node.sensor", &DefaultFlags)
 	if err != nil {
 		return err
@@ -117,13 +118,13 @@ func WithAggregated(amr types.AggregatedMeasurementRequest, flags ...CommandFlag
 	defer manager.Unlock()
 
 	manager.campaignId = amr.CampaignId
-	manager.begin = time.UnixMilli(amr.Begin)
+	manager.begin = amr.Begin
 
 	if len(flags) > 0 {
 		manager.flags = flags[0]
 	}
 
-	monitorTime := (amr.End - amr.Begin) / 1000
+	monitorTime := amr.End.Unix() - amr.Begin.Unix()
 	manager.flags.MonitorTime = strconv.FormatInt(monitorTime, 10)
 
 	manager.flags.MinFreq = strconv.FormatInt(amr.FreqMin, 10)
@@ -139,13 +140,13 @@ func WithRaw(rmr types.RawMeasurementRequest, flags ...CommandFlags) *sensorMana
 	defer manager.Unlock()
 
 	manager.campaignId = rmr.CampaignId
-	manager.begin = time.UnixMilli(rmr.Begin)
+	manager.begin = rmr.Begin
 
 	if len(flags) > 0 {
 		manager.flags = flags[0]
 	}
 
-	monitorTime := (rmr.End - rmr.Begin) / 1000
+	monitorTime := rmr.End.Unix() - rmr.Begin.Unix()
 	manager.flags.MonitorTime = strconv.FormatInt(monitorTime, 10)
 
 	return manager

@@ -1,7 +1,6 @@
 package system
 
 import (
-	"github.com/openrfsense/common/config"
 	"github.com/openrfsense/common/stats"
 )
 
@@ -24,24 +23,23 @@ type StatsLocation struct {
 // providerLocation implements stats.Provider
 var _ stats.Provider = providerLocation{}
 
-type providerLocation struct{}
+type providerLocation struct {
+	LocationName string
+	Latitude     float64
+	Longitude    float64
+	Elevation    float64
+}
 
 func (providerLocation) Name() string {
 	return "location"
 }
 
-// TODO: make location required/sanitize configuration on start
-// Web UI pre check?
-func (providerLocation) Stats() (interface{}, error) {
-	lat := config.GetOrDefault("node.location.latitude", 0.0)
-	long := config.GetOrDefault("node.location.longitude", 0.0)
-	alt := config.GetOrDefault("node.location.elevation", 0.0)
-
+func (p providerLocation) Stats() (interface{}, error) {
 	sl := &StatsLocation{
-		Name:        config.Get[string]("node.location.name"),
+		Name:        p.LocationName,
 		Type:        "Point",
-		Coordinates: []float64{long, lat},
-		Elevation:   alt,
+		Coordinates: []float64{p.Longitude, p.Latitude},
+		Elevation:   p.Elevation,
 	}
 
 	return sl, nil

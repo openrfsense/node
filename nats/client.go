@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/knadh/koanf"
 	nats "github.com/nats-io/nats.go"
 
-	"github.com/openrfsense/common/config"
 	"github.com/openrfsense/common/logging"
 	"github.com/openrfsense/node/system"
 )
@@ -27,13 +27,13 @@ var (
 // Initializes the internal NATS connection and sets up handlers for various subjects.
 // Uses the token found in tokenFile but also looks for the token in the config, under
 // nats.token (ORFS_NATS_TOKEN in env variables).
-func Init(tokenFile string) error {
-	addr := fmt.Sprintf("nats://%s:%d", config.Must[string]("backend.host"), config.GetWeakInt("nats.port"))
+func Init(config *koanf.Koanf, tokenFile string) error {
+	addr := fmt.Sprintf("nats://%s:%d", config.MustString("backend.host"), config.MustInt("nats.port"))
 
 	var token string
 	var err error
 	if config.Exists("nats.token") {
-		token = config.Get[string]("nats.token")
+		token = config.MustString("nats.token")
 	} else {
 		token, err = GetToken(tokenFile)
 		if err != nil {

@@ -6,8 +6,23 @@ import (
 	"strings"
 	"time"
 
+	"github.com/knadh/koanf"
+
 	"github.com/openrfsense/common/stats"
 )
+
+var staticLocation providerLocation
+
+// Initializes the reporting system, mainly fetches and copies in memory static information
+// needed by providers.
+func Init(config *koanf.Koanf) {
+	staticLocation = providerLocation{
+		LocationName: config.String("node.location.name"),
+		Elevation:    config.MustFloat64("node.location.elevation"),
+		Latitude:     config.MustFloat64("node.location.latitude"),
+		Longitude:    config.MustFloat64("node.location.longitude"),
+	}
+}
 
 // Tries to fetch the machine vendor and model.
 func GetModel() string {
@@ -60,7 +75,7 @@ func GetStats() (*stats.Stats, error) {
 	}
 
 	err = s.Provide(
-		providerLocation{},
+		staticLocation,
 		providerMemory{},
 		providerFs{},
 		providerNetwork{},
@@ -93,7 +108,7 @@ func GetStatsBrief() (*stats.Stats, error) {
 
 	err = s.Provide(
 		providerSensor{},
-		providerLocation{},
+		staticLocation,
 	)
 	if err != nil {
 		return nil, err

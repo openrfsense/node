@@ -7,8 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	"github.com/knadh/koanf"
 
-	"github.com/openrfsense/common/config"
 	"github.com/openrfsense/common/logging"
 )
 
@@ -18,7 +18,7 @@ var log = logging.New().
 	WithFlags(logging.FlagsDevelopment)
 
 // Create a router and use logger for the internal API. Initializes REST endpoints under the given prefix.
-func Start(prefix string, routerConfig ...fiber.Config) *fiber.App {
+func Start(config *koanf.Koanf, prefix string, routerConfig ...fiber.Config) *fiber.App {
 	router := fiber.New(routerConfig...)
 
 	// TODO: is auth needed?
@@ -33,7 +33,7 @@ func Start(prefix string, routerConfig ...fiber.Config) *fiber.App {
 		router.Post("/config", HandleConfigPost)
 	})
 
-	addr := fmt.Sprintf(":%d", config.GetWeakInt("node.port"))
+	addr := fmt.Sprintf(":%d", config.MustInt("node.port"))
 
 	go func() {
 		if err := router.Listen(addr); err != nil {

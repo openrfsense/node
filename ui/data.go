@@ -4,15 +4,15 @@ import (
 	"net"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/knadh/koanf"
 	"github.com/mdlayher/ethtool"
 	"github.com/mdlayher/wifi"
-	"github.com/openrfsense/common/config"
 )
 
-func newConfMap() (fiber.Map, error) {
+func newConfMap(config *koanf.Koanf) (fiber.Map, error) {
 	configMap := fiber.Map{
 		"nats": fiber.Map{
-			"token": config.GetOrDefault("nats.token", ""),
+			"token": config.String("nats.token"),
 		},
 	}
 	return configMap, nil
