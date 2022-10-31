@@ -28,9 +28,10 @@ type CommandFlags struct {
 	Reserved        string `koanf:"reserved" flag:"-u"`
 
 	// These should be ignored by koanf even if found in the configuration
-	MinFreq string
-	MaxFreq string
-	Command string
+	SensorId string
+	MinFreq  string
+	MaxFreq  string
+	Command  string
 }
 
 var DefaultFlags = CommandFlags{
@@ -75,7 +76,7 @@ func generateFlags(sip CommandFlags) []string {
 	}
 
 	// Suffixed arguments
-	ret = append(ret, sip.MinFreq, sip.MaxFreq)
+	ret = append(ret, sip.SensorId, sip.MinFreq, sip.MaxFreq)
 
 	return ret
 }

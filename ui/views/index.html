@@ -4,20 +4,25 @@
 {{ template "views/partials/head" . }}
 
 <body>
-  {{ template "views/index/header" . }}
-  <div class="container-xl">
-    <div class="row row-deck mt-4">
-      <div class="col-md-6">
-        {{ template "views/index/wifi" . }}
+  <div class="d-flex flex-column justify-content-start min-vh-100">
+    {{ template "views/partials/header" . }}
+    <div class="container-xl">
+      <div class="row row-deck mt-4">
+        <div class="col-md-6">
+          {{ template "views/index/wifi" . }}
+        </div>
+        <div class="col-md-6 mt-4 mt-md-0">
+          {{ template "views/index/ethernet" . }}
+        </div>
       </div>
-      <div class="col-md-6 mt-4 mt-md-0">
-        {{ template "views/index/ethernet" . }}
+      <div class="mt-4">
+        {{ template "views/index/config" . }}
       </div>
     </div>
-    <div class="mt-4">
-      {{ template "views/index/config" . }}
-    </div>
+    {{ template "views/partials/footer" . }}
   </div>
+
+  <script src="/static/index.js"></script>
 </body>
 
 </html>

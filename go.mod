@@ -7,6 +7,7 @@ require (
 	github.com/fatih/structs v1.1.0
 	github.com/gofiber/fiber/v2 v2.39.0
 	github.com/gofiber/template v1.7.1
+	github.com/knadh/koanf v1.4.4
 	github.com/mdlayher/ethtool v0.0.0-20220830195143-0e16326d06d1
 	github.com/mdlayher/wifi v0.0.0-20220330172155-a44c70b6d3c8
 	github.com/nats-io/nats.go v1.18.0
@@ -22,7 +23,6 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/josharian/native v1.0.0 // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
-	github.com/knadh/koanf v1.4.4 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
