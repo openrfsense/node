@@ -4,19 +4,9 @@ import (
 	"net"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/knadh/koanf"
 	"github.com/mdlayher/ethtool"
 	"github.com/mdlayher/wifi"
 )
-
-func newConfMap(config *koanf.Koanf) (fiber.Map, error) {
-	configMap := fiber.Map{
-		"nats": fiber.Map{
-			"token": config.String("nats.token"),
-		},
-	}
-	return configMap, nil
-}
 
 func newEthMap() (fiber.Map, error) {
 	ethMap := fiber.Map{

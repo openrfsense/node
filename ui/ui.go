@@ -3,6 +3,7 @@ package ui
 import (
 	"embed"
 	"net/http"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -11,6 +12,7 @@ import (
 	"github.com/knadh/koanf"
 
 	"github.com/openrfsense/common/logging"
+	"github.com/openrfsense/node/config"
 )
 
 var log = logging.New().
@@ -53,7 +55,7 @@ func Init(config *koanf.Koanf, router *fiber.App) {
 }
 
 // Renders the main webpage for the UI.
-func renderIndex(config *koanf.Koanf) fiber.Handler {
+func renderIndex(konfig *koanf.Koanf) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		wifiMap, err := newWifiMap()
 		if err != nil {
@@ -65,7 +67,7 @@ func renderIndex(config *koanf.Koanf) fiber.Handler {
 			return err
 		}
 
-		configMap, err := newConfMap(config)
+		configText, err := os.ReadFile(config.Path())
 		if err != nil {
 			return err
 		}
@@ -73,7 +75,7 @@ func renderIndex(config *koanf.Koanf) fiber.Handler {
 		return c.Render("views/index", fiber.Map{
 			"wifi":   wifiMap,
 			"eth":    ethMap,
-			"config": configMap,
+			"config": string(configText),
 		})
 	}
 }

@@ -1,23 +1,20 @@
 <div class="card">
   <div class="card-header d-flex flex-items-center">
     <div class="d-inline-flex overflow-hidden flex-wrap align-items-center">
-      <div class="me-2">
-        <img width="32" height="32" src="static/icons/tool.svg" alt="">
+      <div class="me-3">
+        <img class="opacity-40" width="32" height="32" src="static/icons/tool.svg" alt="">
       </div>
       <div class="d-inline-block align-middle">
         <span class="h3">Configuration</span>
       </div>
     </div>
+    <div class="ms-auto">
+      <input id="config-save" class="btn btn-success" type="submit" value="Save" form="config-form" />
+    </div>
   </div>
-  <div class="card-body">
+  <div class="card-body p-0">
     <form id="config-form" action="/api/config" method="post" autocomplete="off">
-      <div class="mb-3">
-        <label class="form-label" for="ssid">NATS Token</label>
-        <input class="form-control input-block font-monospace" type="text" placeholder="{{ .config.nats.token }}"
-          id="nats-token" name="nats-token" />
-      </div>
-
-      <input class="btn btn-success" type="submit" value="Save" />
+      <textarea class="form-control" id="config-textarea" name="configText">{{ .config }}</textarea>
     </form>
   </div>
 </div>
