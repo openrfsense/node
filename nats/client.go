@@ -28,7 +28,7 @@ var (
 // Uses the token found in tokenFile but also looks for the token in the config, under
 // nats.token (ORFS_NATS_TOKEN in env variables).
 func Init(config *koanf.Koanf, tokenFile string) error {
-	addr := fmt.Sprintf("nats://%s:%d", config.MustString("backend.host"), config.MustInt("nats.port"))
+	addr := fmt.Sprintf("nats://%s:%d", config.MustString("nats.host"), config.MustInt("nats.port"))
 
 	var token string
 	var err error

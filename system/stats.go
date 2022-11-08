@@ -17,10 +17,10 @@ var staticLocation providerLocation
 // needed by providers.
 func Init(config *koanf.Koanf) {
 	staticLocation = providerLocation{
-		LocationName: config.String("node.location.name"),
-		Elevation:    config.MustFloat64("node.location.elevation"),
-		Latitude:     config.MustFloat64("node.location.latitude"),
-		Longitude:    config.MustFloat64("node.location.longitude"),
+		LocationName: config.String("location.name"),
+		Elevation:    config.MustFloat64("location.elevation"),
+		Latitude:     config.MustFloat64("location.latitude"),
+		Longitude:    config.MustFloat64("location.longitude"),
 	}
 }
 

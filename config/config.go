@@ -12,32 +12,31 @@ import (
 	"github.com/openrfsense/common/logging"
 )
 
-type Node struct {
-	Port int `koanf:"port"`
+type Location struct {
+	Name      string  `yaml:"name"`
+	Elevation float64 `yaml:"elevation"`
+	Latitude  float64 `yaml:"latitude"`
+	Longitude float64 `yaml:"longitude"`
 }
 
-type Backend struct {
-	Port  int               `koanf:"port"`
-	Users map[string]string `koanf:"users"`
+type Node struct {
+	Port int `yaml:"port"`
 }
 
 type NATS struct {
-	Host string `koanf:"host"`
-	Port int    `koanf:"port"`
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
 }
 
 type NodeConfig struct {
-	Node    `koanf:"node"`
-	Backend `koanf:"backend"`
-	NATS    `koanf:"nats"`
+	Location `yaml:"location"`
+	Node     `yaml:"node"`
+	NATS     `yaml:"nats"`
 }
 
 var defaultConfig = NodeConfig{
 	Node: Node{
-		Port: 8080,
-	},
-	Backend: Backend{
-		Port: 8080,
+		Port: 9090,
 	},
 	NATS: NATS{
 		Port: 0,
@@ -50,9 +49,7 @@ var (
 )
 
 var log = logging.New().
-	WithPrefix("config").
-	WithLevel(logging.DebugLevel).
-	WithFlags(logging.FlagsDevelopment)
+	WithPrefix("config")
 
 // Loads a YAML configuration file from the given path and overrides
 // it with environment variables. If the file cannot be loaded or
