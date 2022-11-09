@@ -12,6 +12,10 @@ import (
 	"github.com/openrfsense/common/logging"
 )
 
+type Collector struct {
+	Port int `yaml:"port"`
+}
+
 type Location struct {
 	Name      string  `yaml:"name"`
 	Elevation float64 `yaml:"elevation"`
@@ -29,12 +33,16 @@ type NATS struct {
 }
 
 type NodeConfig struct {
-	Location `yaml:"location"`
-	Node     `yaml:"node"`
-	NATS     `yaml:"nats"`
+	Collector `yaml:"collector"`
+	Location  `yaml:"location"`
+	Node      `yaml:"node"`
+	NATS      `yaml:"nats"`
 }
 
 var defaultConfig = NodeConfig{
+	Collector: Collector{
+		Port: 2222,
+	},
 	Node: Node{
 		Port: 9090,
 	},

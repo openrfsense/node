@@ -1,14 +1,30 @@
+# Node daemon configuration
 node:
+  # Port on which to serve the UI
   port: 9090
-  location:
-    name: Trento
-    elevation: 200.0
-    latitude: 46.0669256
-    longitude: 11.1481102
-backend:
-  host: "127.0.0.1"
-  port: 8081
-  username: openrfsense
-  password: openrfsense
+
+# Location information (required)
+location:
+  # Readable name of the location
+  name: Trento
+  # Altitude of the sensor
+  elevation: 200.0
+  # Geographic coordinates of the sensor
+  latitude: 46.0669256
+  longitude: 11.1481102
+
+# Collector service configuration
+collector:
+# Collector host (the backend's host)
+  host: BACKEND-IP
+  # Port on which to wait for TCP packets
+  port: 2222
+
+# NATS server configuration
 nats:
+  # NATS host (generally the same as the backend service)
+  host: BACKEND-IP
+  # Port for the NATS server
   port: 4222
+  # Token for NATS connection encryption
+  token: nats-token

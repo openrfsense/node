@@ -1,6 +1,7 @@
 package sensor
 
 import (
+	"fmt"
 	"os/exec"
 	"strconv"
 	"sync"
@@ -108,6 +109,13 @@ func Init(config *koanf.Koanf) error {
 			campaignId: "",
 		}
 	}
+
+	// Initialize TCP collector to the one described in the configuration
+	manager.flags.TcpCollector = fmt.Sprintf(
+		"%s:%d",
+		config.MustString("collector.host"),
+		config.MustInt("collector.port"),
+	)
 
 	return nil
 }
