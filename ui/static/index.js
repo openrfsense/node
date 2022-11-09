@@ -62,4 +62,5 @@ var cm = CodeMirror.fromTextArea(
         },
     }
 )
+cm.setSize("100%", "auto")
 cm.on("change", () => cm.save())
