@@ -15,15 +15,15 @@ location:
 
 # Collector service configuration
 collector:
-# Collector host (the backend's host)
-  host: BACKEND-IP
+  # Collector host (the backend's host)
+  host: localhost
   # Port on which to wait for TCP packets
   port: 2222
 
 # NATS server configuration
 nats:
   # NATS host (generally the same as the backend service)
-  host: BACKEND-IP
+  host: localhost
   # Port for the NATS server
   port: 4222
   # Token for NATS connection encryption

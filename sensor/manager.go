@@ -113,7 +113,7 @@ func Init(config *koanf.Koanf) error {
 	// Initialize TCP collector to the one described in the configuration
 	manager.flags.TcpCollector = fmt.Sprintf(
 		"%s:%d",
-		config.MustString("collector.host"),
+		config.String("collector.host"),
 		config.MustInt("collector.port"),
 	)
 
