@@ -33,7 +33,7 @@ CodeMirror.registerHelper("lint", "yaml", text => {
       return found
     }
     try { 
-        jsyaml.loadAll(text)
+        var doc = jsyaml.loadAll(text)
         document.getElementById("config-save").classList.toggle("disabled", false)
     } catch(e) {
         var loc = e.mark,

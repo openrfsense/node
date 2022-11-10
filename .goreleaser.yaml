@@ -45,7 +45,6 @@ nfpms:
       - deb
       - apk
       - rpm
-      - archlinux
     version_metadata: git
     contents:
       - src: config.yml

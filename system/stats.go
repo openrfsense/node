@@ -8,10 +8,16 @@ import (
 
 	"github.com/knadh/koanf"
 
+	"github.com/openrfsense/common/logging"
 	"github.com/openrfsense/common/stats"
 )
 
 var staticLocation providerLocation
+
+var log = logging.New().
+	WithPrefix("system").
+	WithLevel(logging.DebugLevel).
+	WithFlags(logging.FlagsDevelopment)
 
 // Initializes the reporting system, mainly fetches and copies in memory static information
 // needed by providers.
@@ -74,14 +80,15 @@ func GetStats() (*stats.Stats, error) {
 		return nil, err
 	}
 
+	// Provider errors are logged but not propagated since they
+	// are just extra information
 	err = s.Provide(
-		staticLocation,
 		providerMemory{},
 		providerFs{},
 		providerNetwork{},
 	)
 	if err != nil {
-		return nil, err
+		log.Error(err)
 	}
 
 	return s, nil
@@ -106,12 +113,14 @@ func GetStatsBrief() (*stats.Stats, error) {
 		Uptime:   uptime,
 	}
 
+	// Provider errors are logged but not propagated since they
+	// are just extra information
 	err = s.Provide(
-		providerSensor{},
 		staticLocation,
+		providerSensor{},
 	)
 	if err != nil {
-		return nil, err
+		log.Error(err)
 	}
 
 	return s, nil
