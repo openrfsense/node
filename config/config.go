@@ -41,7 +41,7 @@ type NodeConfig struct {
 
 var defaultConfig = NodeConfig{
 	Collector: Collector{
-		Port: 2222,
+		Port: 2022,
 	},
 	Node: Node{
 		Port: 9090,

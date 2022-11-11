@@ -18,7 +18,7 @@ collector:
   # Collector host (the backend's host)
   host: localhost
   # Port on which to wait for TCP packets
-  port: 2222
+  port: 2022
 
 # NATS server configuration
 nats:
