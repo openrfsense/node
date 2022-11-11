@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/knadh/koanf"
@@ -54,6 +55,7 @@ var defaultConfig = NodeConfig{
 var (
 	konf     *koanf.Koanf
 	konfPath string
+	konfText string
 )
 
 var log = logging.New().
@@ -64,7 +66,7 @@ var log = logging.New().
 // parsed as YAML, an error is returned. Requires a default config of any kind,
 // will try to serialize the configuration to outConfig if present (needs to
 // be a pointer to a struct).
-func Load(path string) (*koanf.Koanf, error) {
+func Load(path string, onReload ...func(*koanf.Koanf)) (*koanf.Koanf, error) {
 	konf = koanf.New(".")
 
 	if strings.TrimSpace(path) == "" {
@@ -79,6 +81,8 @@ func Load(path string) (*koanf.Koanf, error) {
 	}
 
 	konfPath = path
+	konfTextBytes, _ := fp.ReadBytes()
+	konfText = string(konfTextBytes)
 
 	err := fp.Watch(func(event interface{}, err error) {
 		if err != nil {
@@ -89,6 +93,13 @@ func Load(path string) (*koanf.Koanf, error) {
 		log.Debug("configuration changed, reloading")
 		konf = koanf.New(".")
 		_ = konf.Load(fp, yaml.Parser())
+
+		konfTextBytes, _ := fp.ReadBytes()
+		konfText = string(konfTextBytes)
+
+		for _, cb := range onReload {
+			cb(konf)
+		}
 	})
 	if err != nil {
 		return nil, err
@@ -99,9 +110,14 @@ func Load(path string) (*koanf.Koanf, error) {
 	return konf, nil
 }
 
-// Returns a copy of the configuration file path in use.
-func Path() string {
-	return konfPath
+// Save the given text in the configuration file on disk.
+func Save(text string) error {
+	return os.WriteFile(konfPath, []byte(text), 0o644)
+}
+
+// Returns full configuration file contents.
+func Text() string {
+	return konfText
 }
 
 // Formats environment variables: ORFS_SECTION_SUBSECTION_KEY becomes

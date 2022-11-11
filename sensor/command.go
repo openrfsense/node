@@ -7,25 +7,25 @@ import (
 )
 
 type CommandFlags struct {
-	DevIndex        string `koanf:"devIndex" flag:"-d"`
-	ClkOffset       string `koanf:"clkOffset" flag:"-c"`
-	ClkCorrPeriod   string `koanf:"clkCorrPeriod" flag:"-k"`
-	Gain            string `koanf:"gain" flag:"-g"`
-	HoppingStrategy string `koanf:"hoppingStrategy" flag:"-y"`
-	SampRate        string `koanf:"sampRate" flag:"-s"`
-	Log2FFTsize     string `koanf:"log2FFTsize" flag:"-f"`
-	FftBatchLen     string `koanf:"fftBatchLen" flag:"-b"`
-	AvgFactor       string `koanf:"avgFactor" flag:"-a"`
-	SOverlap        string `koanf:"soverlap" flag:"-o"`
-	FreqOverlap     string `koanf:"freqOverlap" flag:"-q"`
-	MonitorTime     string `koanf:"monitorTime" flag:"-t"`
-	MinTimeRes      string `koanf:"minTimeRes" flag:"-r"`
-	Window          string `koanf:"window" flag:"-w"`
-	TcpCollector    string `koanf:"tcpCollector" flag:"-m"`
-	SslCollector    string `koanf:"sslCollector" flag:"-n"`
-	AbsoluteTime    string `koanf:"absoluteTime" flag:"-x"`
-	MeasurementType string `koanf:"measurementType" flag:"-z"`
-	Reserved        string `koanf:"reserved" flag:"-u"`
+	DevIndex        string `yaml:"devIndex" flag:"-d"`
+	ClkOffset       string `yaml:"clkOffset" flag:"-c"`
+	ClkCorrPeriod   string `yaml:"clkCorrPeriod" flag:"-k"`
+	Gain            string `yaml:"gain" flag:"-g"`
+	HoppingStrategy string `yaml:"hoppingStrategy" flag:"-y"`
+	SampRate        string `yaml:"sampRate" flag:"-s"`
+	Log2FFTsize     string `yaml:"log2FFTsize" flag:"-f"`
+	FftBatchLen     string `yaml:"fftBatchLen" flag:"-b"`
+	AvgFactor       string `yaml:"avgFactor" flag:"-a"`
+	SOverlap        string `yaml:"soverlap" flag:"-o"`
+	FreqOverlap     string `yaml:"freqOverlap" flag:"-q"`
+	MonitorTime     string `yaml:"monitorTime" flag:"-t"`
+	MinTimeRes      string `yaml:"minTimeRes" flag:"-r"`
+	Window          string `yaml:"window" flag:"-w"`
+	TcpCollector    string `yaml:"tcpCollector" flag:"-m"`
+	SslCollector    string `yaml:"sslCollector" flag:"-n"`
+	AbsoluteTime    string `yaml:"absoluteTime" flag:"-x"`
+	MeasurementType string `yaml:"measurementType" flag:"-z"`
+	Reserved        string `yaml:"reserved" flag:"-u"`
 
 	// These should be ignored by koanf even if found in the configuration
 	SensorId string

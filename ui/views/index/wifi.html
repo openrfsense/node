@@ -44,7 +44,36 @@
     <form id="wifi-form" action="/api/network/wifi" method="post" autocomplete="off">
       <div class="mb-3">
         <label class="form-label" for="ssid">SSID</label>
-        <input class="form-control input-block text-mono" type="text" placeholder="SSID" id="ssid" name="ssid" />
+        <select class="form-select" id="ssid" name="ssid">
+          <optgroup label="Available">
+            {{ range .wifi.available }}
+            <option value="{{ . }}">{{ . }}</option>
+            {{ end }}
+          </optgroup>
+          <optgroup label="Saved">
+            {{ range .wifi.saved }}
+            {{ if eq . $.wifi.ssid }}
+            <option value="{{ . }}" selected>{{ . }}</option>
+            {{ else }}
+            <option value="{{ . }}">{{ . }}</option>
+            {{ end }}
+            {{ end }}
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="security">Security</label>
+        <select class="form-select" id="security" name="security">
+          <option value="wpa-psk" selected>WPA2 + WPA3 Personal</option>
+          <option value="sae">WPA3 personal only</option>
+          <option value="none">None or WEP</option>
+          <!-- Not supported yet, these options require extra dialogs/parameters -->
+          <!-- <option value="ieee8021x">Dynamic WEP</option> -->
+          <!-- <option value="owe">Opportunistic Wireless Encryption</option> -->
+          <!-- <option value="wpa-eap">WPA2 + WPA3 enterprise</option> -->
+          <!-- <option value="wpa-eap-suite-b-192">WPA3 enterprise only</option> -->
+        </select>
       </div>
 
       <div class="mb-3">

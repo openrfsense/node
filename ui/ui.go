@@ -3,16 +3,15 @@ package ui
 import (
 	"embed"
 	"net/http"
-	"os"
+
+	"github.com/openrfsense/common/logging"
+	"github.com/openrfsense/node/config"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/template/html"
 	"github.com/knadh/koanf"
-
-	"github.com/openrfsense/common/logging"
-	"github.com/openrfsense/node/config"
 )
 
 var log = logging.New().
@@ -51,31 +50,24 @@ func Init(config *koanf.Koanf, router *fiber.App) {
 		}),
 	)
 
-	router.Get("/", renderIndex(config))
+	router.Get("/", renderIndex)
 }
 
 // Renders the main webpage for the UI.
-func renderIndex(konfig *koanf.Koanf) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		wifiMap, err := newWifiMap()
-		if err != nil {
-			return err
-		}
-
-		ethMap, err := newEthMap()
-		if err != nil {
-			return err
-		}
-
-		configText, err := os.ReadFile(config.Path())
-		if err != nil {
-			return err
-		}
-
-		return c.Render("views/index", fiber.Map{
-			"wifi":   wifiMap,
-			"eth":    ethMap,
-			"config": string(configText),
-		})
+func renderIndex(c *fiber.Ctx) error {
+	wifiMap, err := newWifiMap()
+	if err != nil {
+		return err
 	}
+
+	ethMap, err := newEthMap()
+	if err != nil {
+		return err
+	}
+
+	return c.Render("views/index", fiber.Map{
+		"wifi":   wifiMap,
+		"eth":    ethMap,
+		"config": config.Text(),
+	})
 }

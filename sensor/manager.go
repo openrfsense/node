@@ -54,7 +54,7 @@ func (m *sensorManager) Run() {
 	go func(m *sensorManager) {
 		time.Sleep(time.Until(m.begin))
 
-		cmd := exec.Command("es_sensor", flagsSlice...)
+		cmd := exec.Command("orfs_sensor", flagsSlice...)
 		m.Lock()
 		defer m.Unlock()
 		m.status = Busy
@@ -95,7 +95,8 @@ func Status() StatusEnum {
 	return manager.status
 }
 
-// Initializes a SensorManager singleton.
+// Initializes a SensorManager singleton. Also loads default command line flags
+// from the configuration.
 func Init(config *koanf.Koanf) error {
 	err := config.Unmarshal("node.sensor", &DefaultFlags)
 	if err != nil {
@@ -120,7 +121,7 @@ func Init(config *koanf.Koanf) error {
 	return nil
 }
 
-// Starts an aggregated measurement campaign by running es_sensor with the given flags.
+// Starts an aggregated measurement campaign by running orfs_sensor with the given flags.
 func WithAggregated(amr types.AggregatedMeasurementRequest, flags ...CommandFlags) *sensorManager {
 	manager.Lock()
 	defer manager.Unlock()
@@ -142,7 +143,7 @@ func WithAggregated(amr types.AggregatedMeasurementRequest, flags ...CommandFlag
 	return manager
 }
 
-// Starts a raw measurement campaign by running es_sensor with the given flags
+// Starts a raw measurement campaign by running orfs_sensor with the given flags
 func WithRaw(rmr types.RawMeasurementRequest, flags ...CommandFlags) *sensorManager {
 	manager.Lock()
 	defer manager.Unlock()

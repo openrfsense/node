@@ -3,14 +3,15 @@ package api
 import (
 	"net/http"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/openrfsense/node/config"
+	"github.com/openrfsense/node/system"
+
+	"github.com/gofiber/fiber/v2"
 	"gopkg.in/yaml.v3"
 )
 
 func HandleConfigPost(ctx *fiber.Ctx) error {
 	text := ctx.FormValue("configText")
-	log.Debug("Config text: " + text)
 	if len(text) == 0 {
 		return fiber.ErrBadRequest
 	}
@@ -20,15 +21,19 @@ func HandleConfigPost(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	log.Debugf("Got config: %#v", conf)
+	err = config.Save(text)
+	if err != nil {
+		return err
+	}
 
 	return ctx.SendStatus(http.StatusOK)
 }
 
 func HandleWifiPost(ctx *fiber.Ctx) error {
-	// FIXME: implement this
-	log.Debug("SSID: " + ctx.FormValue("ssid"))
-	log.Debug("Password: " + ctx.FormValue("password"))
+	_, err := system.WirelessConnect(ctx.FormValue("ssid"), ctx.FormValue("password"), ctx.FormValue("security"))
+	if err != nil {
+		return err
+	}
 
 	return ctx.SendStatus(http.StatusOK)
 }

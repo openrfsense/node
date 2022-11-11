@@ -6,27 +6,28 @@ import (
 	nats "github.com/nats-io/nats.go"
 
 	"github.com/openrfsense/common/types"
+	"github.com/openrfsense/node/stats"
 	"github.com/openrfsense/node/system"
 )
 
 // Responds with full system stats (system.GetStats).
 func HandlerStats(conn *nats.EncodedConn, msg *nats.Msg) error {
-	stats, err := system.GetStats()
+	stat, err := stats.GetStats()
 	if err != nil {
 		return err
 	}
 
-	return conn.Publish(msg.Reply, *stats)
+	return conn.Publish(msg.Reply, *stat)
 }
 
 // Responds with brief system stats (system.GetStatsBrief).
 func HandlerStatsBrief(conn *nats.EncodedConn, msg *nats.Msg) error {
-	stats, err := system.GetStatsBrief()
+	stat, err := stats.GetStatsBrief()
 	if err != nil {
 		return err
 	}
 
-	return conn.Publish(msg.Reply, *stats)
+	return conn.Publish(msg.Reply, *stat)
 }
 
 // Starts an aggregated measurement and sends back brief stats.

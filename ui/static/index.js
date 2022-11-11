@@ -1,13 +1,3 @@
-function populateWifiNetworks(event) {
-    // if (!event.target.open) return
-    event.preventDefault()
-
-    var list = event.target.querySelector("ul")
-    console.log(list)
-
-    event.focus()
-}
-
 document.getElementById("wifi-form").addEventListener("submit", event => {
     fetch(event.target.action, {
         method: event.target.method,
@@ -15,7 +5,6 @@ document.getElementById("wifi-form").addEventListener("submit", event => {
     })
     event.preventDefault()
 })
-// document.querySelector("#wifi-dropdown").addEventListener("focus", populateWifiNetworks)
 
 document.getElementById("config-form").addEventListener("submit", event => {
     fetch(event.target.action, {

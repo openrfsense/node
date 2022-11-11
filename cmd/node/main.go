@@ -15,6 +15,7 @@ import (
 	"github.com/openrfsense/node/config"
 	"github.com/openrfsense/node/nats"
 	"github.com/openrfsense/node/sensor"
+	"github.com/openrfsense/node/stats"
 	"github.com/openrfsense/node/system"
 	"github.com/openrfsense/node/ui"
 )
@@ -49,7 +50,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	system.Init(konfig)
+	stats.Init(konfig)
 
 	log.Info("Initializing sensor manager")
 	err = sensor.Init(konfig)

@@ -1,4 +1,4 @@
-package system
+package stats
 
 import (
 	"github.com/openrfsense/node/sensor"

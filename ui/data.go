@@ -1,110 +1,124 @@
 package ui
 
 import (
-	"net"
+	"sort"
 
+	gonm "github.com/Wifx/gonetworkmanager"
 	"github.com/gofiber/fiber/v2"
-	"github.com/mdlayher/ethtool"
-	"github.com/mdlayher/wifi"
 )
 
 func newEthMap() (fiber.Map, error) {
-	ethMap := fiber.Map{
+	nm, err := gonm.NewNetworkManager()
+	if err != nil {
+		return nil, err
+	}
+
+	ret := fiber.Map{
 		"connected": false,
+		"ip":        "",
+		"interface": "",
 	}
 
-	ethtool, err := ethtool.New()
-	if err != nil {
-		return nil, err
-	}
-	defer ethtool.Close()
-
-	// FIXME: ethtool is slow/broken on Pi, use gonetworkmanager
-	states, err := ethtool.LinkStates()
-	if err != nil {
-		log.Error("failed to get eth link infos")
-		return nil, err
-	}
-
-	for _, state := range states {
-		if !state.Link {
+	devices, _ := nm.GetDevices()
+	for _, d := range devices {
+		devType, _ := d.GetPropertyDeviceType()
+		if devType != gonm.NmDeviceTypeEthernet {
 			continue
 		}
 
-		iface, err := net.InterfaceByIndex(state.Interface.Index)
+		ethDev, err := gonm.NewDeviceWired(d.GetPath())
 		if err != nil {
-			log.Error(err)
-			break
+			continue
 		}
 
-		addrs, err := iface.Addrs()
-		if err != nil {
-			log.Error(err)
-			break
+		plugged, _ := ethDev.GetPropertyCarrier()
+		ret["connected"] = plugged
+		// Try to find at least one wired connection
+		if !plugged {
+			continue
 		}
 
-		for _, addr := range addrs {
-			// NOTE: IsPrivate generally returns true for virtual network devices
-			if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && !ipnet.IP.IsPrivate() {
-				if ipnet.IP.To4() != nil {
-					ethMap["connected"] = true
-					ethMap["ip"] = ipnet.IP.String()
-					ethMap["interface"] = state.Interface.Name
-					break
-				}
-			}
+		conn, _ := ethDev.GetPropertyActiveConnection()
+		connState, _ := conn.GetPropertyState()
+		if connState == gonm.NmActiveConnectionStateActivated {
+			ret["connected"] = true
+			ip4, _ := conn.GetPropertyIP4Config()
+			addrs, _ := ip4.GetPropertyAddresses()
+			ret["ip"] = addrs[0].Address
 		}
+
+		ifName, _ := d.GetPropertyInterface()
+		ret["interface"] = ifName
 	}
 
-	return ethMap, nil
+	return ret, nil
 }
 
 func newWifiMap() (fiber.Map, error) {
-	wifiMap := fiber.Map{
+	nm, err := gonm.NewNetworkManager()
+	if err != nil {
+		return nil, err
+	}
+
+	ret := fiber.Map{
 		"connected": false,
+		"ip":        "",
+		"interface": "",
+		"ssid":      "",
+		"available": []string{},
+		"saved":     []string{},
 	}
 
-	wc, err := wifi.New()
-	if err != nil {
-		return nil, err
-	}
-
-	wIfaces, err := wc.Interfaces()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, iface := range wIfaces {
-		if iface.Type != wifi.InterfaceTypeStation {
+	devices, _ := nm.GetDevices()
+	for _, d := range devices {
+		devType, _ := d.GetPropertyDeviceType()
+		if devType != gonm.NmDeviceTypeWifi {
 			continue
 		}
 
-		bss, _ := wc.BSS(iface)
-		netIface, err := net.InterfaceByIndex(iface.Index)
+		wirelessDev, err := gonm.NewDeviceWireless(d.GetPath())
 		if err != nil {
-			log.Error(err)
-			break
+			continue
 		}
 
-		addrs, err := netIface.Addrs()
-		if err != nil {
-			log.Error(err)
-			break
+		conn, _ := wirelessDev.GetPropertyActiveConnection()
+		connState, _ := conn.GetPropertyState()
+		if connState == gonm.NmActiveConnectionStateActivated {
+			ret["connected"] = true
+			ip4, _ := conn.GetPropertyIP4Config()
+			addrs, _ := ip4.GetPropertyAddresses()
+			ret["ip"] = addrs[0].Address
 		}
 
-		for _, addr := range addrs {
-			if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-				// TODO: IPv6 support?
-				if ipnet.IP.To4() != nil {
-					wifiMap["connected"] = true
-					wifiMap["ssid"] = bss.SSID
-					wifiMap["ip"] = ipnet.IP.String()
-					wifiMap["interface"] = iface.Name
-					break
-				}
+		ifName, _ := d.GetPropertyInterface()
+		ret["interface"] = ifName
+
+		activeAp, _ := wirelessDev.GetPropertyActiveAccessPoint()
+		activeSsid, _ := activeAp.GetPropertySSID()
+		ret["ssid"] = activeSsid
+
+		allAps, _ := wirelessDev.GetAccessPoints()
+		allSsids := []string{}
+		for _, ap := range allAps {
+			ssid, _ := ap.GetPropertySSID()
+			allSsids = append(allSsids, ssid)
+		}
+		sort.Strings(allSsids)
+		ret["available"] = allSsids
+
+		savedSsids := []string{}
+		settings, _ := gonm.NewSettings()
+		allConns, _ := settings.ListConnections()
+		for _, conn := range allConns {
+			connSettings, _ := conn.GetSettings()
+			if connSettings["connection"]["interface-name"] == ifName {
+				ssidBytes := connSettings["802-11-wireless"]["ssid"].([]byte)
+				savedSsids = append(savedSsids, string(ssidBytes))
 			}
 		}
+		sort.Strings(savedSsids)
+		ret["saved"] = savedSsids
 	}
 
-	return wifiMap, nil
+	return ret, nil
 }
