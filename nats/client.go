@@ -2,6 +2,7 @@ package nats
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/knadh/koanf"
@@ -16,10 +17,25 @@ import (
 // is logged but does not halt the application.
 type Handler func(*nats.EncodedConn, *nats.Msg) error
 
+// Type Route represents a channel to subscribe to and the relative handler.
+type Route struct {
+	Subject string
+	Handler Handler
+}
+
+// The subjects used by the node and relative handlers
+var routes = []Route{
+	{".all", HandlerStatsBrief},
+	{"stats", HandlerStats},
+	{".all.aggregated", HandlerAggregatedMeasurement},
+	{".all.raw", HandlerRawMeasurement},
+}
+
 var (
 	conn *nats.EncodedConn
 
 	log = logging.New().
+		WithPrefix("nats").
 		WithLevel(logging.DebugLevel).
 		WithFlags(logging.FlagsDevelopment)
 )
@@ -41,33 +57,18 @@ func Init(config *koanf.Koanf, tokenFile string) error {
 		}
 	}
 
+	// Connect and encode the connection
 	conn, err = connect(addr, system.ID(), token)
 	if err != nil {
 		return err
 	}
 
-	// Handle requests on node.all
-	err = handle(conn, system.ID(), ".all", HandlerStatsBrief)
-	if err != nil {
-		return err
-	}
-
-	// Handle requests on node.$id.stats
-	err = handle(conn, system.ID(), "stats", HandlerStats)
-	if err != nil {
-		return err
-	}
-
-	// Handle requests on node.all.aggregated
-	err = handle(conn, system.ID(), ".all.aggregated", HandlerAggregatedMeasurement)
-	if err != nil {
-		return err
-	}
-
-	// Handle requests on node.all.raw
-	err = handle(conn, system.ID(), ".all.raw", HandlerRawMeasurement)
-	if err != nil {
-		return err
+	// Register the routes
+	for _, route := range routes {
+		err = handle(conn, system.ID(), route.Subject, route.Handler)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 
 	return nil
@@ -88,9 +89,16 @@ func Disconnect() {
 func connect(addr string, clientId string, token string) (*nats.EncodedConn, error) {
 	c, err := nats.Connect(
 		addr,
-		nats.RetryOnFailedConnect(true),
 		nats.Name(clientId),
 		nats.Token(token),
+		nats.RetryOnFailedConnect(true),
+		nats.MaxReconnects(math.MaxInt),
+		nats.ReconnectHandler(func(c *nats.Conn) {
+			log.Info("Connection estabilished")
+		}),
+		nats.DisconnectErrHandler(func(_ *nats.Conn, err error) {
+			log.Warnf("Connection lost: %v", err)
+		}),
 	)
 	if err != nil {
 		return nil, err
@@ -108,7 +116,7 @@ func connect(addr string, clientId string, token string) (*nats.EncodedConn, err
 
 // Registers a custom message handler (see type Handler) with automatic path formatting.
 // Paths beginning with '.' (the separator) are absolute and formatted to 'node.$path',
-// while paths like '$path' are prepended with the client ID and become 'node.$id.$path'.
+// while paths like '$path' are prefixed with the client ID and become 'node.$id.$path'.
 func handle(conn *nats.EncodedConn, clientId string, path string, handler Handler) error {
 	trimmed := strings.Trim(path, ".")
 	requestPath := fmt.Sprintf("node.%s.%s", clientId, trimmed)
@@ -122,10 +130,11 @@ func handle(conn *nats.EncodedConn, clientId string, path string, handler Handle
 		if err != nil {
 			log.Error(err)
 		}
+		log.Debugf("responded on %s", msg.Reply)
 	})
 
 	if err == nil {
-		log.Debugf("Subscribed to %s", requestPath)
+		log.Debugf("registered subject %s", requestPath)
 	}
 
 	return err

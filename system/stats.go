@@ -1,6 +1,7 @@
 package system
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
@@ -32,29 +33,31 @@ func Init(config *koanf.Koanf) {
 
 // Tries to fetch the machine vendor and model.
 func GetModel() string {
-	ret := ""
-
 	if vendor, err := os.ReadFile("/sys/devices/virtual/dmi/id/board_vendor"); err == nil {
-		ret = strings.TrimSpace(string(vendor))
-		if name, err := os.ReadFile("/sys/devices/virtual/dmi/id/board_name"); err == nil {
-			ret += " " + strings.TrimSpace(string(name))
+		ret := bytes.TrimSpace(vendor)
+		if board, err := os.ReadFile("/sys/devices/virtual/dmi/id/board_name"); err == nil {
+			ret = append(ret, byte(' '))
+			ret = append(ret, bytes.TrimSpace(board)...)
 		}
-		return ret
+		return string(ret)
 	}
 
 	if name, err := os.ReadFile("/sys/devices/virtual/dmi/id/product_name"); err == nil {
-		ret = strings.TrimSpace(string(name))
+		ret := bytes.TrimSpace(name)
 		if version, err := os.ReadFile("/sys/devices/virtual/dmi/id/product_version"); err == nil {
-			ret += " " + strings.TrimSpace(string(version))
+			ret = append(ret, byte(' '))
+			ret = append(ret, bytes.TrimSpace(version)...)
 		}
-		return ret
+		return string(ret)
 	}
 
 	if model, err := os.ReadFile("/sys/firmware/devicetree/base/model"); err == nil {
-		return strings.TrimSpace(string(model))
+		// Raspberry Pis tend to have trailing zeroes in the model name
+		model = bytes.Trim(model, "\u0000")
+		return string(bytes.TrimSpace(model))
 	}
 
-	return ret
+	return "OpenRFSense Node"
 }
 
 // Returns system uptime in milliseconds.

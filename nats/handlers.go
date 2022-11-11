@@ -9,6 +9,7 @@ import (
 	"github.com/openrfsense/node/system"
 )
 
+// Responds with full system stats (system.GetStats).
 func HandlerStats(conn *nats.EncodedConn, msg *nats.Msg) error {
 	stats, err := system.GetStats()
 	if err != nil {
@@ -18,6 +19,7 @@ func HandlerStats(conn *nats.EncodedConn, msg *nats.Msg) error {
 	return conn.Publish(msg.Reply, *stats)
 }
 
+// Responds with brief system stats (system.GetStatsBrief).
 func HandlerStatsBrief(conn *nats.EncodedConn, msg *nats.Msg) error {
 	stats, err := system.GetStatsBrief()
 	if err != nil {
@@ -27,6 +29,7 @@ func HandlerStatsBrief(conn *nats.EncodedConn, msg *nats.Msg) error {
 	return conn.Publish(msg.Reply, *stats)
 }
 
+// Starts an aggregated measurement and sends back brief stats.
 func HandlerAggregatedMeasurement(conn *nats.EncodedConn, msg *nats.Msg) error {
 	amr := types.AggregatedMeasurementRequest{}
 	err := json.Unmarshal(msg.Data, &amr)
@@ -44,6 +47,7 @@ func HandlerAggregatedMeasurement(conn *nats.EncodedConn, msg *nats.Msg) error {
 	return nil
 }
 
+// Starts a raw measurement and sends back brief stats.
 func HandlerRawMeasurement(conn *nats.EncodedConn, msg *nats.Msg) error {
 	rmr := types.RawMeasurementRequest{}
 	err := json.Unmarshal(msg.Data, &rmr)
