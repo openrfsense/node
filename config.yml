@@ -6,7 +6,7 @@ node:
 # Location information (required)
 location:
   # Readable name of the location
-  name: Milano
+  name: Trento
   # Altitude of the sensor
   elevation: 200.0
   # Geographic coordinates of the sensor

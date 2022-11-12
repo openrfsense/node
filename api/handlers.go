@@ -1,8 +1,6 @@
 package api
 
 import (
-	"net/http"
-
 	"github.com/openrfsense/node/config"
 	"github.com/openrfsense/node/system"
 
@@ -18,7 +16,7 @@ func HandleConfigPost(ctx *fiber.Ctx) error {
 	conf := config.NodeConfig{}
 	err := yaml.Unmarshal([]byte(text), &conf)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	err = config.Save(text)
@@ -26,7 +24,7 @@ func HandleConfigPost(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.SendStatus(http.StatusOK)
+	return ctx.SendStatus(fiber.StatusOK)
 }
 
 func HandleWifiPost(ctx *fiber.Ctx) error {
@@ -35,5 +33,5 @@ func HandleWifiPost(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.SendStatus(http.StatusOK)
+	return ctx.SendStatus(fiber.StatusOK)
 }

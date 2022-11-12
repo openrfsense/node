@@ -56,9 +56,14 @@ func (m *sensorManager) Run() {
 
 		cmd := exec.Command("orfs_sensor", flagsSlice...)
 		m.Lock()
-		defer m.Unlock()
 		m.status = Busy
+		m.Unlock()
+
+		// TODO: send output to backend via NATS
 		output, err := cmd.CombinedOutput()
+
+		m.Lock()
+		defer m.Unlock()
 		m.output = string(output)
 		m.err = err
 		if err == nil {

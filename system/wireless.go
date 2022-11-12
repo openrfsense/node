@@ -106,12 +106,12 @@ func generateConnection(ssid string, password string, security string, connectio
 		return nil, fmt.Errorf("ssid must not be empty")
 	}
 
-	if strings.TrimSpace(password) == "" {
-		return nil, fmt.Errorf("password must not be empty")
-	}
-
 	if strings.TrimSpace(security) == "" {
 		return nil, fmt.Errorf("security must not be empty")
+	}
+
+	if strings.TrimSpace(password) == "" && security != "none" {
+		return nil, fmt.Errorf("password can be empty only for unsecured access points")
 	}
 
 	connection["connection"]["id"] = ssid

@@ -45,19 +45,10 @@ var (
 // nats.token (ORFS_NATS_TOKEN in env variables).
 func Init(config *koanf.Koanf, tokenFile string) error {
 	addr := fmt.Sprintf("nats://%s:%d", config.String("nats.host"), config.MustInt("nats.port"))
-
-	var token string
-	var err error
-	if config.Exists("nats.token") {
-		token = config.MustString("nats.token")
-	} else {
-		token, err = GetToken(tokenFile)
-		if err != nil {
-			return err
-		}
-	}
+	token := config.MustString("nats.token")
 
 	// Connect and encode the connection
+	var err error
 	conn, err = connect(addr, system.ID(), token)
 	if err != nil {
 		return err

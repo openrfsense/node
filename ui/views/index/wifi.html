@@ -44,7 +44,7 @@
     <form id="wifi-form" action="/api/network/wifi" method="post" autocomplete="off">
       <div class="mb-3">
         <label class="form-label" for="ssid">SSID</label>
-        <select class="form-select" id="ssid" name="ssid">
+        <select class="form-select" id="ssid" name="ssid" required>
           <optgroup label="Available">
             {{ range .wifi.available }}
             <option value="{{ . }}">{{ . }}</option>
@@ -64,7 +64,7 @@
 
       <div class="mb-3">
         <label class="form-label" for="security">Security</label>
-        <select class="form-select" id="security" name="security">
+        <select class="form-select" id="security" name="security" required>
           <option value="wpa-psk" selected>WPA2 + WPA3 Personal</option>
           <option value="sae">WPA3 personal only</option>
           <option value="none">None or WEP</option>

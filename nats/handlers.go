@@ -6,6 +6,7 @@ import (
 	nats "github.com/nats-io/nats.go"
 
 	"github.com/openrfsense/common/types"
+	"github.com/openrfsense/node/sensor"
 	"github.com/openrfsense/node/stats"
 	"github.com/openrfsense/node/system"
 )
@@ -40,7 +41,8 @@ func HandlerAggregatedMeasurement(conn *nats.EncodedConn, msg *nats.Msg) error {
 
 	for _, id := range amr.Sensors {
 		if id == system.ID() {
-			log.Debugf("Got measurement request: %#v\n", amr)
+			log.Debugf("got measurement request: %#v\n", amr)
+			sensor.WithAggregated(amr).Run()
 			return HandlerStatsBrief(conn, msg)
 		}
 	}
@@ -58,7 +60,8 @@ func HandlerRawMeasurement(conn *nats.EncodedConn, msg *nats.Msg) error {
 
 	for _, id := range rmr.Sensors {
 		if id == system.ID() {
-			log.Debugf("Got measurement request: %#v\n", rmr)
+			log.Debugf("got measurement request: %#v\n", rmr)
+			sensor.WithRaw(rmr).Run()
 			return HandlerStatsBrief(conn, msg)
 		}
 	}
