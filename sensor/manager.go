@@ -1,13 +1,16 @@
 package sensor
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"strconv"
 	"sync"
 	"time"
 
+	"github.com/openrfsense/common/logging"
 	"github.com/openrfsense/common/types"
+	"github.com/openrfsense/node/system"
 
 	"github.com/knadh/koanf"
 )
@@ -33,45 +36,73 @@ type sensorManager struct {
 	// Campaign start datetime
 	begin time.Time
 
+	// Campaign end datetime
+	end time.Time
+
 	// Flags to pass onto the es-sensor process
 	flags CommandFlags
 
 	// Last command output, if any
-	output string
+	Output chan string
 
 	// Last command error, if any
-	err error
+	Err chan error
 
 	sync.RWMutex
 }
 
 var manager *sensorManager
 
+var log = logging.New().
+	WithPrefix("sensor").
+	WithLevel(logging.DebugLevel).
+	WithFlags(logging.FlagsDevelopment)
+
 // Starts the actual process.
 func (m *sensorManager) Run() {
+	m.flags.CampaignId = m.campaignId
+	m.flags.SensorId = system.ID()
 	flagsSlice := generateFlags(m.flags)
 
-	go func(m *sensorManager) {
-		time.Sleep(time.Until(m.begin))
+	log.Debugf("starting manager: %#v", m)
 
-		cmd := exec.Command("orfs_sensor", flagsSlice...)
-		m.Lock()
-		m.status = Busy
-		m.Unlock()
+	// time.Sleep(time.Until(m.begin))
+	log.Debugf("starting campaign %s", m.campaignId)
 
-		// TODO: send output to backend via NATS
-		output, err := cmd.CombinedOutput()
+	ctx, cancel := context.WithDeadline(context.Background(), m.end)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, m.flags.Command, flagsSlice...)
+	log.Debug(cmd.String())
 
-		m.Lock()
-		defer m.Unlock()
-		m.output = string(output)
-		m.err = err
-		if err == nil {
-			m.status = Free
-		} else {
-			m.status = Error
-		}
-	}(m)
+	m.Lock()
+	m.status = Busy
+	m.Unlock()
+	// TODO: send output to backend via NATS
+	output, err := cmd.CombinedOutput()
+	log.Debug(string(output))
+
+	m.Output <- string(output)
+	m.Err <- err
+	m.Lock()
+	m.campaignId = ""
+	if err == nil {
+		m.status = Free
+	} else {
+		log.Error(err)
+		m.status = Error
+	}
+	m.Unlock()
+	log.Debug("unlocked manager")
+}
+
+// Open channel where command output is sent after completion.
+func Output() <-chan string {
+	return manager.Output
+}
+
+// Open channel where command errors are sent after completion.
+func Err() <-chan error {
+	return manager.Err
 }
 
 // Returns the current campaign ID (assigned by the backend).
@@ -79,18 +110,6 @@ func CampaignId() string {
 	manager.RLock()
 	defer manager.RUnlock()
 	return manager.campaignId
-}
-
-// Returns the CommandFlags object used to start the campaign.
-func Flags() CommandFlags {
-	return manager.flags
-}
-
-// Returns the command output for the current campaign.
-func Output() string {
-	manager.RLock()
-	defer manager.RUnlock()
-	return manager.output
 }
 
 // Returns the current status of the sensor manager.
@@ -117,8 +136,8 @@ func Init(config *koanf.Koanf) error {
 	}
 
 	// Initialize TCP collector to the one described in the configuration
-	manager.flags.TcpCollector = fmt.Sprintf(
-		"%s:%d",
+	manager.flags.SslCollector = fmt.Sprintf(
+		"%s:%d#",
 		config.String("collector.host"),
 		config.MustInt("collector.port"),
 	)
@@ -132,18 +151,21 @@ func WithAggregated(amr types.AggregatedMeasurementRequest, flags ...CommandFlag
 	defer manager.Unlock()
 
 	manager.campaignId = amr.CampaignId
-	manager.begin = amr.Begin
+	manager.begin = time.Unix(amr.Begin, 0)
+	manager.end = time.Unix(amr.End, 0)
 
 	if len(flags) > 0 {
 		manager.flags = flags[0]
 	}
 
-	monitorTime := amr.End.Unix() - amr.Begin.Unix()
+	monitorTime := amr.End - amr.Begin
 	manager.flags.MonitorTime = strconv.FormatInt(monitorTime, 10)
 
 	manager.flags.MinFreq = strconv.FormatInt(amr.FreqMin, 10)
 	manager.flags.MaxFreq = strconv.FormatInt(amr.FreqMax, 10)
 	manager.flags.MinTimeRes = strconv.FormatInt(amr.TimeRes, 10)
+
+	manager.flags.MeasurementType = "PSD"
 
 	return manager
 }
@@ -154,14 +176,19 @@ func WithRaw(rmr types.RawMeasurementRequest, flags ...CommandFlags) *sensorMana
 	defer manager.Unlock()
 
 	manager.campaignId = rmr.CampaignId
-	manager.begin = rmr.Begin
+	manager.begin = time.Unix(rmr.Begin, 0)
+	manager.end = time.Unix(rmr.End, 0)
 
 	if len(flags) > 0 {
 		manager.flags = flags[0]
 	}
 
-	monitorTime := rmr.End.Unix() - rmr.Begin.Unix()
+	monitorTime := rmr.End - rmr.Begin
 	manager.flags.MonitorTime = strconv.FormatInt(monitorTime, 10)
+
+	manager.flags.MeasurementType = "IQ"
+	manager.flags.MinFreq = fmt.Sprint(rmr.FreqCenter)
+	manager.flags.MaxFreq = fmt.Sprint(rmr.FreqCenter)
 
 	return manager
 }

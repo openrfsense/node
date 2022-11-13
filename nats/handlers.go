@@ -42,7 +42,7 @@ func HandlerAggregatedMeasurement(conn *nats.EncodedConn, msg *nats.Msg) error {
 	for _, id := range amr.Sensors {
 		if id == system.ID() {
 			log.Debugf("got measurement request: %#v\n", amr)
-			sensor.WithAggregated(amr).Run()
+			go sensor.WithAggregated(amr).Run()
 			return HandlerStatsBrief(conn, msg)
 		}
 	}
@@ -61,7 +61,7 @@ func HandlerRawMeasurement(conn *nats.EncodedConn, msg *nats.Msg) error {
 	for _, id := range rmr.Sensors {
 		if id == system.ID() {
 			log.Debugf("got measurement request: %#v\n", rmr)
-			sensor.WithRaw(rmr).Run()
+			go sensor.WithRaw(rmr).Run()
 			return HandlerStatsBrief(conn, msg)
 		}
 	}

@@ -28,37 +28,27 @@ type CommandFlags struct {
 	Reserved        string `yaml:"reserved" flag:"-u"`
 
 	// These should be ignored by koanf even if found in the configuration
-	SensorId string
-	MinFreq  string
-	MaxFreq  string
-	Command  string
+	SensorId   string
+	CampaignId string
+	MinFreq    string
+	MaxFreq    string
+	Command    string
 }
 
 var DefaultFlags = CommandFlags{
-	ClkOffset:       "0",
-	DevIndex:        "0",
-	Log2FFTsize:     "8",
-	FreqOverlap:     "0.167",
 	HoppingStrategy: "sequential",
-	AvgFactor:       "5",
 	MinTimeRes:      "0",
-	Window:          "hanning",
 	ClkCorrPeriod:   "3600",
-	FftBatchLen:     "10",
-	SOverlap:        "128",
 	SampRate:        "2400000",
 	MonitorTime:     "0",
 	Gain:            "32.8",
 	MinFreq:         "24000000",
 	MaxFreq:         "1766000000",
-	Command:         "es_sensor",
+	Command:         "orfs_sensor",
 }
 
 func generateFlags(sip CommandFlags) []string {
 	ret := []string{}
-
-	// Prefixed arguments
-	ret = append(ret, sip.Command)
 
 	// Flagged arguments
 	for _, f := range structs.Fields(sip) {
@@ -76,7 +66,7 @@ func generateFlags(sip CommandFlags) []string {
 	}
 
 	// Suffixed arguments
-	ret = append(ret, sip.SensorId, sip.MinFreq, sip.MaxFreq)
+	ret = append(ret, sip.SensorId, sip.CampaignId, sip.MinFreq, sip.MaxFreq)
 
 	return ret
 }

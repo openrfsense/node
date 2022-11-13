@@ -10,7 +10,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/knadh/koanf v1.4.4
 	github.com/nats-io/nats.go v1.18.0
-	github.com/openrfsense/common v0.0.0-20221027152913-3c313654df87
+	github.com/openrfsense/common v0.0.0-20221112173614-5de3f264fc4c
 	github.com/spf13/pflag v1.0.5
 	gopkg.in/yaml.v3 v3.0.1
 )
