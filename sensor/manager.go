@@ -43,10 +43,10 @@ type sensorManager struct {
 	flags CommandFlags
 
 	// Last command output, if any
-	Output chan string
+	output chan string
 
 	// Last command error, if any
-	Err chan error
+	err chan error
 
 	sync.RWMutex
 }
@@ -74,35 +74,32 @@ func (m *sensorManager) Run() {
 	cmd := exec.CommandContext(ctx, m.flags.Command, flagsSlice...)
 	log.Debug(cmd.String())
 
-	m.Lock()
 	m.status = Busy
-	m.Unlock()
 	// TODO: send output to backend via NATS
 	output, err := cmd.CombinedOutput()
 	log.Debug(string(output))
+	m.output <- string(output)
 
-	m.Output <- string(output)
-	m.Err <- err
 	m.Lock()
 	m.campaignId = ""
-	if err == nil {
-		m.status = Free
-	} else {
+	if err != nil {
 		log.Error(err)
+		m.err <- err
 		m.status = Error
+	} else {
+		m.status = Free
 	}
 	m.Unlock()
-	log.Debug("unlocked manager")
 }
 
 // Open channel where command output is sent after completion.
 func Output() <-chan string {
-	return manager.Output
+	return manager.output
 }
 
 // Open channel where command errors are sent after completion.
 func Err() <-chan error {
-	return manager.Err
+	return manager.err
 }
 
 // Returns the current campaign ID (assigned by the backend).
@@ -132,6 +129,8 @@ func Init(config *koanf.Koanf) error {
 			flags:      DefaultFlags,
 			status:     Free,
 			campaignId: "",
+			output:     make(chan string, 1),
+			err:        make(chan error, 1),
 		}
 	}
 
@@ -161,11 +160,11 @@ func WithAggregated(amr types.AggregatedMeasurementRequest, flags ...CommandFlag
 	monitorTime := amr.End - amr.Begin
 	manager.flags.MonitorTime = strconv.FormatInt(monitorTime, 10)
 
+	// Set type-specific command parameters
+	manager.flags.MeasurementType = "PSD"
 	manager.flags.MinFreq = strconv.FormatInt(amr.FreqMin, 10)
 	manager.flags.MaxFreq = strconv.FormatInt(amr.FreqMax, 10)
 	manager.flags.MinTimeRes = strconv.FormatInt(amr.TimeRes, 10)
-
-	manager.flags.MeasurementType = "PSD"
 
 	return manager
 }
@@ -186,6 +185,7 @@ func WithRaw(rmr types.RawMeasurementRequest, flags ...CommandFlags) *sensorMana
 	monitorTime := rmr.End - rmr.Begin
 	manager.flags.MonitorTime = strconv.FormatInt(monitorTime, 10)
 
+	// Set type-specific command parameters
 	manager.flags.MeasurementType = "IQ"
 	manager.flags.MinFreq = fmt.Sprint(rmr.FreqCenter)
 	manager.flags.MaxFreq = fmt.Sprint(rmr.FreqCenter)

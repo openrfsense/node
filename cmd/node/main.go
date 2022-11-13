@@ -58,15 +58,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Connect ot NATS only if the node is connected to the internet
-	// if system.IsOnline() {
+	// Connect to NATS
 	log.Info("Connecting to NATS")
 	err = nats.Init(konfig, *natsTokenPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer nats.Disconnect()
-	// }
 
 	log.Info("Starting internal API")
 
