@@ -392,6 +392,10 @@ github.com/openrfsense/common v0.0.0-20221112173258-5703ae53390a h1:elG+rvMb9C7M
 github.com/openrfsense/common v0.0.0-20221112173258-5703ae53390a/go.mod h1:0/646z/wpv28jm4a9JDGssbMbV3xTohiJDMAvfOPeCE=
 github.com/openrfsense/common v0.0.0-20221112173614-5de3f264fc4c h1:srDkE7lKKKYIeeg62NkwO1xGtQklK7MPZkSRA6xkPtg=
 github.com/openrfsense/common v0.0.0-20221112173614-5de3f264fc4c/go.mod h1:0/646z/wpv28jm4a9JDGssbMbV3xTohiJDMAvfOPeCE=
+github.com/openrfsense/common v0.0.0-20221113145845-7d047eb37f99 h1:EQ8roT7krzsM+Yrl4BZpecH6//XLilFyfcJmTfTmUX0=
+github.com/openrfsense/common v0.0.0-20221113145845-7d047eb37f99/go.mod h1:0/646z/wpv28jm4a9JDGssbMbV3xTohiJDMAvfOPeCE=
+github.com/openrfsense/common v0.0.0-20221113152023-da2079575705 h1:lkPeCpsbp0J8BJzZgwUlCc7fhcsTKfKwKOOlJh/dn4A=
+github.com/openrfsense/common v0.0.0-20221113152023-da2079575705/go.mod h1:0/646z/wpv28jm4a9JDGssbMbV3xTohiJDMAvfOPeCE=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pascaldekloe/goe v0.1.0/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pelletier/go-toml v1.7.0/go.mod h1:vwGMzjaWMwyfHwgIBhI2YUM4fB6nL6lVAvS1LBMMhTE=

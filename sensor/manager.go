@@ -150,14 +150,14 @@ func WithAggregated(amr types.AggregatedMeasurementRequest, flags ...CommandFlag
 	defer manager.Unlock()
 
 	manager.campaignId = amr.CampaignId
-	manager.begin = time.Unix(amr.Begin, 0)
-	manager.end = time.Unix(amr.End, 0)
+	manager.begin = amr.Begin
+	manager.end = amr.End
 
 	if len(flags) > 0 {
 		manager.flags = flags[0]
 	}
 
-	monitorTime := amr.End - amr.Begin
+	monitorTime := amr.End.Unix() - amr.Begin.Unix()
 	manager.flags.MonitorTime = strconv.FormatInt(monitorTime, 10)
 
 	// Set type-specific command parameters
@@ -175,14 +175,14 @@ func WithRaw(rmr types.RawMeasurementRequest, flags ...CommandFlags) *sensorMana
 	defer manager.Unlock()
 
 	manager.campaignId = rmr.CampaignId
-	manager.begin = time.Unix(rmr.Begin, 0)
-	manager.end = time.Unix(rmr.End, 0)
+	manager.begin = rmr.Begin
+	manager.end = rmr.End
 
 	if len(flags) > 0 {
 		manager.flags = flags[0]
 	}
 
-	monitorTime := rmr.End - rmr.Begin
+	monitorTime := rmr.End.Unix() - rmr.Begin.Unix()
 	manager.flags.MonitorTime = strconv.FormatInt(monitorTime, 10)
 
 	// Set type-specific command parameters
