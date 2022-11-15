@@ -50,7 +50,3 @@ nfpms:
       - src: config.yml
         dst: /etc/openrfsense/config.example.yml
         type: "config|noreplace"
-    deb:
-      lintian_overrides:
-        - statically-linked-binary
-        - changelog-file-missing-in-native-package

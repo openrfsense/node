@@ -7,25 +7,25 @@ import (
 )
 
 type CommandFlags struct {
-	DevIndex        string `yaml:"devIndex" flag:"-d"`
-	ClkOffset       string `yaml:"clkOffset" flag:"-c"`
-	ClkCorrPeriod   string `yaml:"clkCorrPeriod" flag:"-k"`
-	Gain            string `yaml:"gain" flag:"-g"`
-	HoppingStrategy string `yaml:"hoppingStrategy" flag:"-y"`
-	SampRate        string `yaml:"sampRate" flag:"-s"`
-	Log2FFTsize     string `yaml:"log2FFTsize" flag:"-f"`
-	FftBatchLen     string `yaml:"fftBatchLen" flag:"-b"`
 	AvgFactor       string `yaml:"avgFactor" flag:"-a"`
+	FftBatchLen     string `yaml:"fftBatchLen" flag:"-b"`
+	ClkOffset       string `yaml:"clkOffset" flag:"-c"`
+	DevIndex        string `yaml:"devIndex" flag:"-d"`
+	Log2FFTsize     string `yaml:"log2FFTsize" flag:"-f"`
+	Gain            string `yaml:"gain" flag:"-g"`
+	ClkCorrPeriod   string `yaml:"clkCorrPeriod" flag:"-k"`
+	SchemaFile      string `yaml:"schemaFile" flag:"-m"`
+	SslCollector    string `yaml:"sslCollector" flag:"-n"`
 	SOverlap        string `yaml:"soverlap" flag:"-o"`
 	FreqOverlap     string `yaml:"freqOverlap" flag:"-q"`
-	MonitorTime     string `yaml:"monitorTime" flag:"-t"`
 	MinTimeRes      string `yaml:"minTimeRes" flag:"-r"`
-	Window          string `yaml:"window" flag:"-w"`
-	TcpCollector    string `yaml:"tcpCollector" flag:"-m"`
-	SslCollector    string `yaml:"sslCollector" flag:"-n"`
-	AbsoluteTime    string `yaml:"absoluteTime" flag:"-x"`
-	MeasurementType string `yaml:"measurementType" flag:"-z"`
+	SampRate        string `yaml:"sampRate" flag:"-s"`
+	MonitorTime     string `yaml:"monitorTime" flag:"-t"`
 	Reserved        string `yaml:"reserved" flag:"-u"`
+	Window          string `yaml:"window" flag:"-w"`
+	AbsoluteTime    string `yaml:"absoluteTime" flag:"-x"`
+	HoppingStrategy string `yaml:"hoppingStrategy" flag:"-y"`
+	MeasurementType string `yaml:"measurementType" flag:"-z"`
 
 	// These should be ignored by koanf even if found in the configuration
 	SensorId   string

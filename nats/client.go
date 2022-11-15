@@ -12,15 +12,10 @@ import (
 	"github.com/openrfsense/node/system"
 )
 
-// Type Handler is a custom handler for NATS messages which also receives
-// a reference to the current NATS (encoded) connection. Any error returned
-// is logged but does not halt the application.
-type Handler func(*nats.EncodedConn, *nats.Msg) error
-
 // Type Route represents a channel to subscribe to and the relative handler.
 type Route struct {
 	Subject string
-	Handler Handler
+	Handler interface{}
 }
 
 // The subjects used by the node and relative handlers
@@ -32,7 +27,8 @@ var routes = []Route{
 }
 
 var (
-	conn *nats.EncodedConn
+	conn   *nats.EncodedConn
+	errors chan error
 
 	log = logging.New().
 		WithPrefix("nats").
@@ -46,6 +42,7 @@ var (
 func Init(config *koanf.Koanf, tokenFile string) error {
 	addr := fmt.Sprintf("nats://%s:%d", config.String("nats.host"), config.MustInt("nats.port"))
 	token := config.MustString("nats.token")
+	errors = make(chan error, 1)
 
 	// Connect and encode the connection
 	var err error
@@ -61,6 +58,11 @@ func Init(config *koanf.Koanf, tokenFile string) error {
 			log.Error(err)
 		}
 	}
+
+	// Start async error logger
+	go errorLogger(errors)
+	// Start manager data sender
+	go sendManagerData(conn, errors)
 
 	return nil
 }
@@ -95,8 +97,6 @@ func connect(addr string, clientId string, token string) (*nats.EncodedConn, err
 		return nil, err
 	}
 
-	// TODO: log error (warning) if not connected after some time (goroutine)
-
 	conn, err := nats.NewEncodedConn(c, nats.JSON_ENCODER)
 	if err != nil {
 		return nil, err
@@ -108,22 +108,15 @@ func connect(addr string, clientId string, token string) (*nats.EncodedConn, err
 // Registers a custom message handler (see type Handler) with automatic path formatting.
 // Paths beginning with '.' (the separator) are absolute and formatted to 'node.$path',
 // while paths like '$path' are prefixed with the client ID and become 'node.$id.$path'.
-func handle(conn *nats.EncodedConn, clientId string, path string, handler Handler) error {
-	trimmed := strings.Trim(path, ".")
-	requestPath := fmt.Sprintf("node.%s.%s", clientId, trimmed)
-	if strings.HasPrefix(path, ".") {
-		requestPath = fmt.Sprintf("node.%s", trimmed)
+func handle(conn *nats.EncodedConn, clientId string, path string, handler interface{}) error {
+	subject := []string{"node"}
+	if !strings.HasPrefix(path, ".") {
+		subject = append(subject, clientId)
 	}
+	subject = append(subject, strings.Trim(path, "."))
+	requestPath := strings.Join(subject, ".")
 
-	_, err := conn.Subscribe(requestPath, func(msg *nats.Msg) {
-		log.Debugf("received message on %s", requestPath)
-		err := handler(conn, msg)
-		if err != nil {
-			log.Error(err)
-		}
-		log.Debugf("responded on %s", msg.Reply)
-	})
-
+	_, err := conn.Subscribe(requestPath, handler)
 	if err == nil {
 		log.Debugf("registered subject %s", requestPath)
 	}

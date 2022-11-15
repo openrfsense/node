@@ -21,14 +21,16 @@ var log = logging.New().
 func Start(config *koanf.Koanf, prefix string, routerConfig ...fiber.Config) *fiber.App {
 	router := fiber.New(routerConfig...)
 
-	// TODO: is auth needed?
 	router.Use(
-		logger.New(),
 		recover.New(),
 		requestid.New(),
 	)
 
+	// TODO: is auth needed?
 	router.Route(prefix, func(router fiber.Router) {
+		router.Use(
+			logger.New(),
+		)
 		router.Post("/network/wifi", HandleWifiPost)
 		router.Post("/config", HandleConfigPost)
 	})

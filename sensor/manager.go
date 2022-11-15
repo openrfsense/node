@@ -60,6 +60,14 @@ var log = logging.New().
 
 // Starts the actual process.
 func (m *sensorManager) Run() {
+	m.RLock()
+	if m.status != Free {
+		m.RUnlock()
+		log.Warn("Sensor is busy, not taking part in the campaign")
+		return
+	}
+	m.RUnlock()
+
 	m.flags.CampaignId = m.campaignId
 	m.flags.SensorId = system.ID()
 	flagsSlice := generateFlags(m.flags)
