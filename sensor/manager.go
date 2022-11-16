@@ -1,11 +1,13 @@
 package sensor
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os/exec"
 	"strconv"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/openrfsense/common/logging"
@@ -14,6 +16,8 @@ import (
 
 	"github.com/knadh/koanf"
 )
+
+const afterTermTimeout = time.Second
 
 // Type StatusEnum describes the current status of the sensor
 type StatusEnum string
@@ -61,7 +65,7 @@ var log = logging.New().
 // Starts the actual process.
 func (m *sensorManager) Run() {
 	m.RLock()
-	if m.status != Free {
+	if m.status == Busy {
 		m.RUnlock()
 		log.Warn("Sensor is busy, not taking part in the campaign")
 		return
@@ -76,17 +80,51 @@ func (m *sensorManager) Run() {
 
 	// time.Sleep(time.Until(m.begin))
 	log.Debugf("starting campaign %s", m.campaignId)
+	m.status = Busy
 
 	ctx, cancel := context.WithDeadline(context.Background(), m.end)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, m.flags.Command, flagsSlice...)
+	cmd := exec.Command(m.flags.Command, flagsSlice...)
 	log.Debug(cmd.String())
+	var buf bytes.Buffer
+	cmd.Stdout = &buf
+	cmd.Stderr = &buf
 
-	m.status = Busy
-	// TODO: send output to backend via NATS
-	output, err := cmd.CombinedOutput()
-	log.Debug(string(output))
-	m.output <- string(output)
+	err := cmd.Start()
+	if err != nil {
+		m.err <- err
+		m.Lock()
+		m.status = Error
+		m.Unlock()
+		return
+	}
+	waitDone := make(chan struct{})
+	// A custom process terminator is needed because the stanadrd library's CommandContext
+	// kills the process leaving thousands of TCP sockets open
+	go func() {
+		select {
+		case <-ctx.Done():
+			err := cmd.Process.Signal(syscall.SIGTERM)
+			if err != nil {
+				m.err <- err
+				m.Lock()
+				m.status = Error
+				m.Unlock()
+				return
+			}
+			select {
+			case <-time.After(time.Second):
+				_ = cmd.Process.Kill()
+			case <-waitDone:
+			}
+		case <-waitDone:
+		}
+	}()
+
+	err = cmd.Wait()
+	close(waitDone)
+	log.Debug(string(buf.String()))
+	m.output <- string(buf.String())
 
 	m.Lock()
 	m.campaignId = ""
