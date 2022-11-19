@@ -64,7 +64,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer nats.Disconnect()
 
 	log.Info("Starting internal API")
 
@@ -77,15 +76,11 @@ func main() {
 	})
 	// Initialize UI (templated web pages)
 	ui.Init(konfig, router)
-	defer func() {
-		err = router.Shutdown()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 	<-ctx.Done()
 	log.Info("Shutting down")
+	nats.Disconnect()
+	_ = router.Shutdown()
 }

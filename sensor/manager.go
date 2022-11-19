@@ -78,9 +78,9 @@ func (m *sensorManager) Run() {
 
 	log.Debugf("starting manager: %#v", m)
 
+	m.status = Busy
 	// time.Sleep(time.Until(m.begin))
 	log.Debugf("starting campaign %s", m.campaignId)
-	m.status = Busy
 
 	ctx, cancel := context.WithDeadline(context.Background(), m.end)
 	defer cancel()
@@ -98,9 +98,9 @@ func (m *sensorManager) Run() {
 		m.Unlock()
 		return
 	}
-	waitDone := make(chan struct{})
 	// A custom process terminator is needed because the stanadrd library's CommandContext
 	// kills the process leaving thousands of TCP sockets open
+	waitDone := make(chan struct{})
 	go func() {
 		select {
 		case <-ctx.Done():
@@ -113,7 +113,7 @@ func (m *sensorManager) Run() {
 				return
 			}
 			select {
-			case <-time.After(time.Second):
+			case <-time.After(afterTermTimeout):
 				_ = cmd.Process.Kill()
 			case <-waitDone:
 			}
