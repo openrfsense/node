@@ -44,7 +44,10 @@
     <form id="wifi-form" action="/api/network/wifi" method="post" autocomplete="off">
       <div class="mb-3">
         <label class="form-label" for="ssid">SSID</label>
-        <select class="form-select" id="ssid" name="ssid" required>
+        <select class="form-select mb-3" id="ssid" name="ssid" required>
+          <optgroup label="Other">
+            <option value="other">Other</option>
+          </optgroup>
           <optgroup label="Available">
             {{ range .wifi.available }}
             <option value="{{ . }}">{{ . }}</option>
@@ -60,6 +63,7 @@
             {{ end }}
           </optgroup>
         </select>
+        <input class="form-control input-block" type="text" placeholder="SSID" id="ssid-text" name="ssid-text" disabled />
       </div>
 
       <div class="mb-3">

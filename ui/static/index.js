@@ -1,7 +1,15 @@
+var ssidText = document.getElementById("ssid-text")
+var ssidSelect = document.getElementById("ssid")
+
 document.getElementById("wifi-form").addEventListener("submit", event => {
+    var data = new FormData(event.target)
+    if (ssidSelect.value === "other") {
+        data.ssid = ssidText.value
+    }
+
     fetch(event.target.action, {
         method: event.target.method,
-        body: new FormData(event.target),
+        body: data,
     })
     event.preventDefault()
 })
@@ -12,6 +20,15 @@ document.getElementById("config-form").addEventListener("submit", event => {
         body: new FormData(event.target),
     })
     event.preventDefault()
+})
+
+ssidSelect.addEventListener("change", event => {
+    var select = event.target
+    if (select.value === "other") {
+        ssidText.disabled = false
+        return
+    }
+    ssidText.disabled = true
 })
 
 // Custom CodeMirror YAML linter, disables the "Save" button on error
