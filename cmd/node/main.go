@@ -77,7 +77,6 @@ func main() {
 	// Initialize UI (templated web pages)
 	ui.Init(konfig, router)
 
-	system.EnableHotspot()
 	go system.StartHotspotDisabler()
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

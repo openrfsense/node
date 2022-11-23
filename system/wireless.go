@@ -2,13 +2,18 @@ package system
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
 	gonm "github.com/Wifx/gonetworkmanager"
 	"github.com/google/uuid"
+	"github.com/openrfsense/common/logging"
 )
+
+var log = logging.New().
+	WithPrefix("system").
+	WithFlags(logging.FlagsDevelopment).
+	WithLevel(logging.DebugLevel)
 
 const (
 	defaultHotspotConnName = "Hotspot"
@@ -41,7 +46,7 @@ func EnableHotspot() {
 		return
 	}
 
-	wirelessDev, err := getPrimaryWirelessDevice(nm)
+	wirelessDev, err := GetPrimaryWirelessDevice(nm)
 	if err != nil {
 		return
 	}
@@ -66,7 +71,7 @@ func StartHotspotDisabler() {
 		return
 	}
 
-	wirelessDev, err := getPrimaryWirelessDevice(nm)
+	wirelessDev, err := GetPrimaryWirelessDevice(nm)
 	if err != nil {
 		return
 	}
@@ -74,7 +79,7 @@ func StartHotspotDisabler() {
 	activeConn, _ := wirelessDev.GetPropertyActiveConnection()
 	id, _ := activeConn.GetPropertyID()
 	if id != defaultHotspotConnName {
-		log.Println("hotspot is not active")
+		log.Info("hotspot is not active")
 	}
 
 	_ = nm.DeactivateConnection(activeConn)
@@ -88,7 +93,7 @@ func WirelessConnect(ssid string, password string, security string) (gonm.Active
 		return nil, err
 	}
 
-	wirelessDev, err := getPrimaryWirelessDevice(nm)
+	wirelessDev, err := GetPrimaryWirelessDevice(nm)
 	if err != nil {
 		return nil, err
 	}
@@ -140,9 +145,17 @@ func WirelessConnectionExists(ssid string) (gonm.Connection, bool) {
 	return nil, false
 }
 
-func getPrimaryWirelessDevice(nm gonm.NetworkManager) (gonm.DeviceWireless, error) {
+func GetPrimaryWirelessDevice(nm gonm.NetworkManager) (gonm.DeviceWireless, error) {
 	var wirelessDev gonm.DeviceWireless
 	var err error
+
+	// Wait for NetworkManager to be ready
+	startup := true
+	log.Info("Waiting fot NetworkManager")
+	for startup {
+		<-time.After(time.Second)
+		startup, _ = nm.GetPropertyStartup()
+	}
 
 	devices, _ := nm.GetDevices()
 	for _, d := range devices {
