@@ -2,10 +2,17 @@ package system
 
 import (
 	"fmt"
+	"log"
 	"strings"
+	"time"
 
 	gonm "github.com/Wifx/gonetworkmanager"
 	"github.com/google/uuid"
+)
+
+const (
+	defaultHotspotConnName = "Hotspot"
+	defaultHotspotTimeout  = 5 * time.Minute
 )
 
 var connectionBase = gonm.ConnectionSettings{
@@ -26,6 +33,53 @@ var connectionBase = gonm.ConnectionSettings{
 	},
 }
 
+// Looks for a connection with a specific name (default is "Hotspot") and
+// activates it on the primary wireless device, creating an access point.
+func EnableHotspot() {
+	nm, err := gonm.NewNetworkManager()
+	if err != nil {
+		return
+	}
+
+	wirelessDev, err := getPrimaryWirelessDevice(nm)
+	if err != nil {
+		return
+	}
+
+	settings, _ := gonm.NewSettings()
+	conns, _ := settings.ListConnections()
+	for _, conn := range conns {
+		connSettings, _ := conn.GetSettings()
+		if connSettings["connection"]["id"] == defaultHotspotConnName {
+			_, _ = nm.ActivateConnection(conn, wirelessDev, nil)
+		}
+	}
+}
+
+// Looks for an active wireless connection with a specific name (default is "Hotspot")
+// and disables it after some time. Blocking.
+func StartHotspotDisabler() {
+	<-time.After(defaultHotspotTimeout)
+
+	nm, err := gonm.NewNetworkManager()
+	if err != nil {
+		return
+	}
+
+	wirelessDev, err := getPrimaryWirelessDevice(nm)
+	if err != nil {
+		return
+	}
+
+	activeConn, _ := wirelessDev.GetPropertyActiveConnection()
+	id, _ := activeConn.GetPropertyID()
+	if id != defaultHotspotConnName {
+		log.Println("hotspot is not active")
+	}
+
+	_ = nm.DeactivateConnection(activeConn)
+}
+
 // Connects to an arbitrary wireless network with the first realized interface. Adds a new connection
 // to NetworkManager if required.
 func WirelessConnect(ssid string, password string, security string) (gonm.ActiveConnection, error) {
@@ -34,23 +88,9 @@ func WirelessConnect(ssid string, password string, security string) (gonm.Active
 		return nil, err
 	}
 
-	var wirelessDev gonm.DeviceWireless
-
-	devices, _ := nm.GetDevices()
-	for _, d := range devices {
-		devType, _ := d.GetPropertyDeviceType()
-		if devType != gonm.NmDeviceTypeWifi {
-			continue
-		}
-
-		wirelessDev, err = gonm.NewDeviceWireless(d.GetPath())
-		if err != nil {
-			continue
-		}
-	}
-
-	if wirelessDev == nil {
-		return nil, fmt.Errorf("could not find a connected wireless device")
+	wirelessDev, err := getPrimaryWirelessDevice(nm)
+	if err != nil {
+		return nil, err
 	}
 
 	var ap gonm.AccessPoint
@@ -98,6 +138,30 @@ func WirelessConnectionExists(ssid string) (gonm.Connection, bool) {
 	}
 
 	return nil, false
+}
+
+func getPrimaryWirelessDevice(nm gonm.NetworkManager) (gonm.DeviceWireless, error) {
+	var wirelessDev gonm.DeviceWireless
+	var err error
+
+	devices, _ := nm.GetDevices()
+	for _, d := range devices {
+		devType, _ := d.GetPropertyDeviceType()
+		if devType != gonm.NmDeviceTypeWifi {
+			continue
+		}
+
+		wirelessDev, err = gonm.NewDeviceWireless(d.GetPath())
+		if err != nil {
+			continue
+		}
+	}
+
+	if wirelessDev == nil {
+		return nil, fmt.Errorf("could not find a connected wireless device")
+	}
+
+	return wirelessDev, nil
 }
 
 // Fill in the connection map template with the given parameters and a fresh UUID.
